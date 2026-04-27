@@ -4,6 +4,13 @@ module MailMCP
   class CreateDraftMailMessageTool < Tool
     tool_name "create_draft_mail_message"
     description "Save an email as a draft to the Drafts folder via IMAP APPEND"
+    annotations(
+      title: "Create Draft Mail Message",
+      read_only_hint: false,
+      destructive_hint: false,
+      idempotent_hint: false,
+      open_world_hint: true
+    )
 
     input_schema(
       type: "object",

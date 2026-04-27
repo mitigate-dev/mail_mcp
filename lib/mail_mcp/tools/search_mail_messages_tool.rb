@@ -2,6 +2,13 @@ module MailMCP
   class SearchMailMessagesTool < Tool
     tool_name "search_mail_messages"
     description "Search messages in an IMAP folder using raw IMAP SEARCH criteria"
+    annotations(
+      title: "Search Mail Messages",
+      read_only_hint: true,
+      destructive_hint: false,
+      idempotent_hint: false,
+      open_world_hint: true
+    )
 
     input_schema(
       type: "object",

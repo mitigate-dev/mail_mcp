@@ -2,6 +2,13 @@ module MailMCP
   class ListMailMessagesTool < Tool
     tool_name "list_mail_messages"
     description "List messages in an IMAP folder with pagination"
+    annotations(
+      title: "List Mail Messages",
+      read_only_hint: true,
+      destructive_hint: false,
+      idempotent_hint: false,
+      open_world_hint: true
+    )
 
     input_schema(
       type: "object",

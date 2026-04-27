@@ -2,6 +2,13 @@ module MailMCP
   class MoveMailMessageTool < Tool
     tool_name "move_mail_message"
     description "Move a message to another folder"
+    annotations(
+      title: "Move Mail Message",
+      read_only_hint: false,
+      destructive_hint: true,
+      idempotent_hint: false,
+      open_world_hint: true
+    )
 
     input_schema(
       type: "object",

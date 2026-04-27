@@ -4,6 +4,13 @@ module MailMCP
   class SendMailMessageTool < Tool
     tool_name "send_mail_message"
     description "Send an email via SMTP"
+    annotations(
+      title: "Send Mail Message",
+      read_only_hint: false,
+      destructive_hint: true,
+      idempotent_hint: false,
+      open_world_hint: true
+    )
 
     input_schema(
       type: "object",
