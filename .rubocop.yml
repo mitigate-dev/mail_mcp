@@ -1,0 +1,60 @@
+require:
+  - rubocop-rspec
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.4
+  Exclude:
+    - "vendor/**/*"
+    - "tmp/**/*"
+
+# Use double quotes everywhere
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+# No frozen_string_literal magic comment
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: never
+
+# No doc comments required for this project
+Style/Documentation:
+  Enabled: false
+
+# Metrics — raised to realistic limits for a focused codebase
+Metrics/MethodLength:
+  Max: 25
+Metrics/ClassLength:
+  Max: 235
+Metrics/BlockLength:
+  Max: 65
+Metrics/AbcSize:
+  Max: 30
+Metrics/ParameterLists:
+  Max: 8
+
+# URI.open is intentional for fetching attachment URLs
+Security/Open:
+  Enabled: false
+
+# server_context: is part of the MCP::Tool interface — intentionally unused in most tools
+Lint/UnusedMethodArgument:
+  AllowUnusedKeywordArguments: true
+
+# Tool classes live under MailMCP:: directly but files are grouped in tools/
+RSpec/SpecFilePathFormat:
+  Exclude:
+    - "spec/mail_mcp/tools/**/*"
+
+# Reasonable RSpec limits
+RSpec/ExampleLength:
+  Max: 18
+RSpec/MultipleExpectations:
+  Max: 5
+RSpec/MultipleMemoizedHelpers:
+  Max: 8
