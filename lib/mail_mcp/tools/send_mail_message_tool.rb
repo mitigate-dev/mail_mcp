@@ -15,7 +15,7 @@ module MailMCP
       properties: {
         to: { type: "string", description: "Recipient address(es), comma-separated" },
         subject: { type: "string" },
-        body: { type: "string", description: "Plain-text body" },
+        text_body: { type: "string", description: "Plain-text body" },
         cc: { type: "string" },
         bcc: { type: "string" },
         html_body: { type: "string", description: "HTML body (optional)" },
@@ -24,14 +24,14 @@ module MailMCP
         folder: { type: "string", description: "IMAP folder to save the sent message (default: Sent)",
                   default: "Sent" }
       },
-      required: %w[to subject body]
+      required: %w[to subject text_body]
     )
 
-    def self.call(to:, subject:, body:, server_context:, cc: nil, bcc: nil, html_body: nil,
+    def self.call(to:, subject:, text_body:, server_context:, cc: nil, bcc: nil, html_body: nil,
                   attachment_urls: [], folder: "Sent")
       mail = MailBuilder.build(
         from: server_context.imap_config[:username],
-        to: to, subject: subject, body: body,
+        to: to, subject: subject, text_body: text_body,
         cc: cc, bcc: bcc, html_body: html_body,
         attachment_urls: attachment_urls
       )

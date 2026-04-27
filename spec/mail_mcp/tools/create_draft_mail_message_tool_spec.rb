@@ -14,19 +14,19 @@ RSpec.describe MailMCP::CreateDraftMailMessageTool do
   end
 
   it "appends the draft to the Drafts folder by default" do
-    described_class.call(to: "recipient@example.com", subject: "Draft", body: "Hello", server_context: context)
+    described_class.call(to: "recipient@example.com", subject: "Draft", text_body: "Hello", server_context: context)
     expect(imap_client).to have_received(:append_message).with(
       hash_including(folder: "Drafts")
     )
   end
 
   it "appends to a custom folder when specified" do
-    described_class.call(to: "r@example.com", subject: "S", body: "B", folder: "MyDrafts", server_context: context)
+    described_class.call(to: "r@example.com", subject: "S", text_body: "B", folder: "MyDrafts", server_context: context)
     expect(imap_client).to have_received(:append_message).with(hash_including(folder: "MyDrafts"))
   end
 
   it "returns a success message" do
-    result = described_class.call(to: "r@example.com", subject: "S", body: "B", server_context: context).to_h
+    result = described_class.call(to: "r@example.com", subject: "S", text_body: "B", server_context: context).to_h
     expect(result[:content].first[:text]).to match(/draft saved/i)
   end
 end

@@ -15,7 +15,7 @@ RSpec.describe MailMCP::SendMailMessageTool do
   end
 
   it "builds a Mail object with the correct fields and sends it" do
-    described_class.call(to: "recipient@example.com", subject: "Hello", body: "World", server_context: context)
+    described_class.call(to: "recipient@example.com", subject: "Hello", text_body: "World", server_context: context)
     expect(MailMCP::SmtpClient).to have_received(:send) do |_config, mail|
       expect(mail.subject).to eq("Hello")
       expect(mail.to).to include("recipient@example.com")
@@ -23,12 +23,13 @@ RSpec.describe MailMCP::SendMailMessageTool do
   end
 
   it "appends the sent message to the Sent folder by default" do
-    described_class.call(to: "r@example.com", subject: "S", body: "B", server_context: context)
+    described_class.call(to: "r@example.com", subject: "S", text_body: "B", server_context: context)
     expect(imap_client).to have_received(:append_message).with(hash_including(folder: "Sent"))
   end
 
   it "appends to a custom folder when specified" do
-    described_class.call(to: "r@example.com", subject: "S", body: "B", folder: "Sent Items", server_context: context)
+    described_class.call(to: "r@example.com", subject: "S", text_body: "B",
+                         folder: "Sent Items", server_context: context)
     expect(imap_client).to have_received(:append_message).with(hash_including(folder: "Sent Items"))
   end
 
@@ -36,7 +37,7 @@ RSpec.describe MailMCP::SendMailMessageTool do
     result = described_class.call(
       to: "recipient@example.com",
       subject: "Hello",
-      body: "World",
+      text_body: "World",
       server_context: context
     ).to_h
     expect(result[:content].first[:text]).to match(/sent/i)

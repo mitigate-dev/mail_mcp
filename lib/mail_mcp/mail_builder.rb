@@ -5,7 +5,7 @@ module MailMCP
   module MailBuilder
     module_function
 
-    def build(from:, to:, subject:, body:, cc: nil, bcc: nil, html_body: nil, attachment_urls: [])
+    def build(from:, to:, subject:, text_body:, cc: nil, bcc: nil, html_body: nil, attachment_urls: [])
       mail = Mail.new
       mail.from    = from
       mail.to      = to
@@ -21,10 +21,10 @@ module MailMCP
         mail.text_part = Mail::Part.new do
           content_type "text/plain
  charset=UTF-8"
-          body body
+          body text_body
         end
       else
-        mail.body = body
+        mail.body = text_body
       end
       attachment_urls.each { |url| attach_from_url(mail, url) }
       mail
