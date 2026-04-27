@@ -1,6 +1,6 @@
 module MailMCP
-  class SearchMessagesTool < Tool
-    tool_name "search_messages"
+  class SearchMailMessagesTool < Tool
+    tool_name "search_mail_messages"
     description "Search messages in an IMAP folder using raw IMAP SEARCH criteria"
 
     input_schema(

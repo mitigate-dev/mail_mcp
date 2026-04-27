@@ -1,6 +1,6 @@
 require "spec_helper"
 
-RSpec.describe MailMCP::UpdateFlagsTool do
+RSpec.describe MailMCP::UpdateMailMessageFlagsTool do
   let(:context) do
     MailMCP::CredentialContext.new(
       imap_config: { host: "imap.example.com", port: 993, ssl: true, username: "user", password: "pass" },

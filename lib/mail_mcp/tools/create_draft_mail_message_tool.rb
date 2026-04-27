@@ -1,8 +1,8 @@
 require "mail"
 
 module MailMCP
-  class SaveDraftTool < Tool
-    tool_name "save_draft"
+  class CreateDraftMailMessageTool < Tool
+    tool_name "create_draft_mail_message"
     description "Save an email as a draft to the Drafts folder via IMAP APPEND"
 
     input_schema(

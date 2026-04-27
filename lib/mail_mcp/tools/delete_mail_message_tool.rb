@@ -1,6 +1,6 @@
 module MailMCP
-  class DeleteMessageTool < Tool
-    tool_name "delete_message"
+  class DeleteMailMessageTool < Tool
+    tool_name "delete_mail_message"
     description "Delete a message by UID (marks as deleted and expunges)"
 
     input_schema(

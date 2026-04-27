@@ -1,6 +1,6 @@
 require "spec_helper"
 
-RSpec.describe MailMCP::SaveDraftTool do
+RSpec.describe MailMCP::CreateDraftMailMessageTool do
   let(:context) do
     MailMCP::CredentialContext.new(
       imap_config: { host: "imap.example.com", port: 993, ssl: true, username: "user@example.com", password: "pass" },

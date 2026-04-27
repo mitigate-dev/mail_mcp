@@ -14,14 +14,14 @@ module MailMCP
 
     MCP_TOOLS = [
       ListMailboxesTool,
-      ListMessagesTool,
-      GetMessageTool,
-      SearchMessagesTool,
-      SendEmailTool,
-      SaveDraftTool,
-      DeleteMessageTool,
-      MoveMessageTool,
-      UpdateFlagsTool
+      ListMailMessagesTool,
+      GetMailMessageTool,
+      SearchMailMessagesTool,
+      SendMailMessageTool,
+      CreateDraftMailMessageTool,
+      DeleteMailMessageTool,
+      MoveMailMessageTool,
+      UpdateMailMessageFlagsTool
     ].freeze
 
     # ── MCP ──────────────────────────────────────────────────────────────────

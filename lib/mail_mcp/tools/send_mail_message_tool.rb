@@ -1,8 +1,8 @@
 require "mail"
 
 module MailMCP
-  class SendEmailTool < Tool
-    tool_name "send_email"
+  class SendMailMessageTool < Tool
+    tool_name "send_mail_message"
     description "Send an email via SMTP"
 
     input_schema(

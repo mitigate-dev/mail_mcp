@@ -1,6 +1,6 @@
 module MailMCP
-  class ListMessagesTool < Tool
-    tool_name "list_messages"
+  class ListMailMessagesTool < Tool
+    tool_name "list_mail_messages"
     description "List messages in an IMAP folder with pagination"
 
     input_schema(

@@ -1,6 +1,6 @@
 module MailMCP
-  class MoveMessageTool < Tool
-    tool_name "move_message"
+  class MoveMailMessageTool < Tool
+    tool_name "move_mail_message"
     description "Move a message to another folder"
 
     input_schema(

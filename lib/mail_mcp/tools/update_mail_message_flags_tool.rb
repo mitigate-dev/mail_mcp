@@ -1,6 +1,6 @@
 module MailMCP
-  class UpdateFlagsTool < Tool
-    tool_name "update_flags"
+  class UpdateMailMessageFlagsTool < Tool
+    tool_name "update_mail_message_flags"
     description "Update IMAP flags on a message (mark as read, flagged, etc.)"
 
     input_schema(

@@ -1,6 +1,6 @@
 module MailMCP
-  class GetMessageTool < Tool
-    tool_name "get_message"
+  class GetMailMessageTool < Tool
+    tool_name "get_mail_message"
     description "Fetch a full email message including body and attachment URLs"
 
     input_schema(

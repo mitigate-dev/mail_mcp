@@ -202,8 +202,9 @@ RSpec.describe MailMCP::App do
       expect(tools).to be_an(Array)
       names = tools.map { |t| t["name"] }
       expect(names).to match_array(%w[
-                                     list_mailboxes list_messages get_message search_messages
-                                     send_email save_draft delete_message move_message update_flags
+                                     list_mailboxes list_mail_messages get_mail_message search_mail_messages
+                                     send_mail_message create_draft_mail_message delete_mail_message
+                                     move_mail_message update_mail_message_flags
 ])
     end
 

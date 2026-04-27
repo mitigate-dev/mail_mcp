@@ -1,6 +1,6 @@
 require "spec_helper"
 
-RSpec.describe MailMCP::ListMessagesTool do
+RSpec.describe MailMCP::ListMailMessagesTool do
   let(:context) do
     MailMCP::CredentialContext.new(
       imap_config: { host: "imap.example.com", port: 993, ssl: true, username: "user", password: "pass" },
