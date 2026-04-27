@@ -163,7 +163,6 @@ bundle exec bin/mail_mcp generate \
 | `delete_message` | `folder`, `uid` | Mark `\Deleted` + EXPUNGE |
 | `move_message` | `folder`, `uid`, `destination` | IMAP MOVE (or COPY+DELETE fallback) |
 | `update_flags` | `folder`, `uid`, `add`, `remove` | Add/remove IMAP flags, e.g. `\Seen`, `\Flagged` |
-| `get_attachment` | `attachment_id` | Return a fresh S3 presigned URL (7-day expiry) |
 
 Attachments are never returned as binary data — they are uploaded to S3 on first access and returned as presigned URLs valid for 7 days.
 

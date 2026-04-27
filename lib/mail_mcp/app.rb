@@ -21,8 +21,7 @@ module MailMCP
       SaveDraftTool,
       DeleteMessageTool,
       MoveMessageTool,
-      UpdateFlagsTool,
-      GetAttachmentTool
+      UpdateFlagsTool
     ].freeze
 
     # ── MCP ──────────────────────────────────────────────────────────────────

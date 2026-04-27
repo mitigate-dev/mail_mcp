@@ -203,8 +203,8 @@ RSpec.describe MailMCP::App do
       names = tools.map { |t| t["name"] }
       expect(names).to match_array(%w[
                                      list_mailboxes list_messages get_message search_messages
-                                     send_email save_draft delete_message move_message update_flags get_attachment
-                                   ])
+                                     send_email save_draft delete_message move_message update_flags
+])
     end
 
     it "returns 401 for an invalid Bearer token" do
