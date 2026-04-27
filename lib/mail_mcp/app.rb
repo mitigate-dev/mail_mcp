@@ -193,6 +193,11 @@ module MailMCP
       JSON.generate({ status: "ok" })
     end
 
+    not_found do
+      content_type :json
+      JSON.generate({ error: "not_found" })
+    end
+
     private
 
     def resolve_mcp_context
