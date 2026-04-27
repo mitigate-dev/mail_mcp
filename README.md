@@ -21,7 +21,7 @@ Client (Claude Desktop / MCP Inspector)
 
 ### How authentication works
 
-Clients are provisioned once via the `bin/generate-client` CLI, which produces:
+Clients are provisioned once via the `bin/mail_mcp generate` CLI, which produces:
 
 - **`client_id`** — a JWE token (encrypted, opaque) encoding the IMAP/SMTP server configuration and the `client_secret`. Only the server can decrypt it.
 - **`client_secret`** — a random secret used to authenticate the client at the token endpoint.
@@ -49,11 +49,11 @@ All tokens are **5-part JWE** (`dir` / `A256GCM`), encrypted with `ENCRYPTION_KE
 ## Directory Structure
 
 ```
-mail-mcp/
+mail_mcp/
 ├── Gemfile
 ├── .env.sample            # Environment variable template
 ├── bin/
-│   └── generate-client    # CLI to provision a new client_id + client_secret
+│   └── mail_mcp           # CLI: `generate` (client_id) and `server` (puma)
 ├── config.ru              # Rack entry point — run MailMCP::App.new
 ├── config/
 │   └── puma.rb            # Puma config (single worker, 5 threads)
@@ -126,10 +126,10 @@ bundle exec puma -C config/puma.rb
 
 ## Provisioning a Client
 
-Run `bin/generate-client` once per mail server configuration. The resulting `client_id` and `client_secret` are configured in the MCP client (e.g. Claude Desktop).
+Run `bin/mail_mcp generate` once per mail server configuration. The resulting `client_id` and `client_secret` are configured in the MCP client (e.g. Claude Desktop).
 
 ```bash
-bundle exec ruby bin/generate-client \
+bundle exec bin/mail_mcp generate \
   --imap-host=imap.gmail.com \
   --imap-port=993 \
   --smtp-host=smtp.gmail.com \
@@ -180,6 +180,6 @@ Attachments are never returned as binary data — they are uploaded to S3 on fir
 ## Docker
 
 ```bash
-docker build -t mail-mcp .
-docker run -p 3000:3000 --env-file .env mail-mcp
+docker build -t mail_mcp .
+docker run -p 3000:3000 --env-file .env mail_mcp
 ```

@@ -32,7 +32,7 @@ module MailMCP
       halt(*error_response) if error_response
 
       mcp_server = MCP::Server.new(
-        name: "mail-mcp",
+        name: "mail_mcp",
         version: "1.0.0",
         description: "IMAP and SMTP mail server for AI agents",
         tools: MCP_TOOLS,

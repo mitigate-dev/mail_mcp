@@ -1,0 +1,102 @@
+#!/usr/bin/env ruby
+require "optparse"
+
+COMMANDS = {
+  "generate" => "Generate a new client_id and client_secret",
+  "server" => "Start the MCP server (puma)"
+}.freeze
+
+def print_usage
+  warn "Usage: mail_mcp <command> [options]"
+  warn ""
+  warn "Commands:"
+  COMMANDS.each { |name, desc| warn format("  %-10s %s", name, desc) }
+  warn ""
+  warn "Run `mail_mcp <command> --help` for command-specific options."
+end
+
+def run_generate(argv)
+  if ENV["RACK_ENV"] != "production"
+    require "dotenv"
+    Dotenv.load(File.expand_path("../.env", __dir__))
+  end
+
+  require_relative "../lib/mail_mcp"
+
+  options = {}
+  parser = OptionParser.new do |opts|
+    opts.banner = "Usage: mail_mcp generate [options]"
+    opts.separator ""
+    opts.separator "Required:"
+    opts.on("--imap-host=HOST",   "IMAP server hostname, e.g. imap.gmail.com")
+    opts.on("--imap-port=PORT",   Integer, "IMAP port (default: 993)")
+    opts.on("--smtp-host=HOST",   "SMTP server hostname, e.g. smtp.gmail.com")
+    opts.on("--smtp-port=PORT",   Integer, "SMTP port (default: 587)")
+    opts.separator ""
+    opts.separator "Optional:"
+    opts.on("--[no-]imap-ssl",    "Enable SSL/TLS for IMAP (default: true when port 993)")
+    opts.on("--[no-]smtp-ssl",    "Enable SSL/TLS for SMTP (default: true when port 465)")
+    opts.separator ""
+    opts.on("-h", "--help", "Show this help") do
+      puts opts
+      exit
+    end
+  end
+  parser.parse!(argv, into: options)
+
+  imap_host = options[:"imap-host"]
+  imap_port = options[:"imap-port"] || 993
+  smtp_host = options[:"smtp-host"]
+  smtp_port = options[:"smtp-port"] || 587
+
+  unless imap_host && smtp_host
+    warn "Error: --imap-host and --smtp-host are required"
+    warn ""
+    warn parser
+    exit 1
+  end
+
+  imap_ssl = options.key?(:"imap-ssl") ? options[:"imap-ssl"] : (imap_port == 993)
+  smtp_ssl = options.key?(:"smtp-ssl") ? options[:"smtp-ssl"] : (smtp_port == 465)
+
+  client_secret = SecureRandom.hex(32)
+  client_id = MailMCP::JwtService.issue_client_id(
+    imap_host: imap_host,
+    imap_port: imap_port,
+    imap_ssl: imap_ssl,
+    smtp_host: smtp_host,
+    smtp_port: smtp_port,
+    smtp_ssl: smtp_ssl,
+    client_secret: client_secret
+  )
+
+  puts ""
+  puts "  Client ID:     #{client_id}"
+  puts "  Client Secret: #{client_secret}"
+  puts ""
+  puts "  IMAP: #{imap_host}:#{imap_port} (ssl=#{imap_ssl})"
+  puts "  SMTP: #{smtp_host}:#{smtp_port} (ssl=#{smtp_ssl})"
+  puts ""
+end
+
+def run_server(argv)
+  config = File.expand_path("../config/puma.rb", __dir__)
+  exec("bundle", "exec", "puma", "-C", config, *argv)
+end
+
+command = ARGV.shift
+
+case command
+when "generate"
+  run_generate(ARGV)
+when "server"
+  run_server(ARGV)
+when "-h", "--help", nil
+  print_usage
+  exit(command.nil? ? 1 : 0)
+else
+  warn "Unknown command: #{command}"
+  warn ""
+  print_usage
+  exit 1
+end

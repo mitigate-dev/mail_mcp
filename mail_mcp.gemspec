@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir["lib/**/*.rb", "views/**/*", "config.ru", "config/**/*", "bin/*", "README.md"]
   spec.bindir = "bin"
-  spec.executables = ["generate-client"]
+  spec.executables = ["mail_mcp"]
   spec.require_paths = ["lib"]
 
   spec.add_dependency "aws-sdk-s3", "~> 1.0"
