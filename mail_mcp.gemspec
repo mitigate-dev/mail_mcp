@@ -7,9 +7,11 @@ Gem::Specification.new do |spec|
   spec.email = ["edgars.beigarts@mitigate.dev"]
 
   spec.summary = "Hosted MCP server for IMAP and SMTP email."
-  spec.description = "A Model Context Protocol server providing IMAP/SMTP email tools behind an OAuth 2.1 authorization server."
+  spec.description = "A Model Context Protocol server providing IMAP/SMTP email tools " \
+                     "behind an OAuth 2.1 authorization server."
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.4"
+  spec.metadata["rubygems_mfa_required"] = "true"
 
   spec.files = Dir["lib/**/*.rb", "views/**/*", "config.ru", "config/**/*", "bin/*", "README.md"]
   spec.bindir = "bin"
