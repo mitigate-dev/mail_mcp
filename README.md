@@ -1,0 +1,2 @@
+# Mitigate Mail MCP
+
