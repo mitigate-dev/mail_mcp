@@ -3,17 +3,17 @@ module MailMCP
     tool_name "update_flags"
     description "Update IMAP flags on a message (mark as read, flagged, etc.)"
 
-    input_schema({
-                   type: "object",
-                   properties: {
-                     folder: { type: "string" },
-                     uid: { type: "integer" },
-                     add: { type: "array", items: { type: "string" },
-                            description: "Flags to add, e.g. ['\\\\Seen', '\\\\Flagged']" },
-                     remove: { type: "array", items: { type: "string" }, description: "Flags to remove" }
-                   },
-                   required: %w[folder uid]
-                 })
+    input_schema(
+      type: "object",
+      properties: {
+        folder: { type: "string" },
+        uid: { type: "integer" },
+        add: { type: "array", items: { type: "string" },
+               description: "Flags to add, e.g. ['\\\\Seen', '\\\\Flagged']" },
+        remove: { type: "array", items: { type: "string" }, description: "Flags to remove" }
+      },
+      required: %w[folder uid]
+    )
 
     def self.call(folder:, uid:, server_context:, add: [], remove: [])
       add_flags    = add.map(&:to_sym)

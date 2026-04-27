@@ -5,18 +5,18 @@ module MailMCP
     tool_name "save_draft"
     description "Save an email as a draft to the Drafts folder via IMAP APPEND"
 
-    input_schema({
-                   type: "object",
-                   properties: {
-                     to: { type: "string" },
-                     subject: { type: "string" },
-                     body: { type: "string" },
-                     cc: { type: "string" },
-                     html_body: { type: "string" },
-                     folder: { type: "string", description: "Target folder (default: Drafts)", default: "Drafts" }
-                   },
-                   required: %w[to subject body]
-                 })
+    input_schema(
+      type: "object",
+      properties: {
+        to: { type: "string" },
+        subject: { type: "string" },
+        body: { type: "string" },
+        cc: { type: "string" },
+        html_body: { type: "string" },
+        folder: { type: "string", description: "Target folder (default: Drafts)", default: "Drafts" }
+      },
+      required: %w[to subject body]
+    )
 
     def self.call(to:, subject:, body:, server_context:, cc: nil, html_body: nil, folder: "Drafts")
       imap_config = server_context.imap_config

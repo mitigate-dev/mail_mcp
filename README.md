@@ -68,17 +68,7 @@ mail_mcp/
 │       ├── attachment_store.rb    # S3 upload + presigned URLs (7 days)
 │       ├── tool.rb                # MailMCP::Tool base class
 │       ├── app.rb                 # Sinatra: OAuth + MCP /mcp route (all methods)
-│       └── tools/                 # 10 MCP tool classes
-│           ├── list_mailboxes_tool.rb
-│           ├── list_messages_tool.rb
-│           ├── get_message_tool.rb
-│           ├── search_messages_tool.rb
-│           ├── send_email_tool.rb
-│           ├── save_draft_tool.rb
-│           ├── delete_message_tool.rb
-│           ├── move_message_tool.rb
-│           ├── update_flags_tool.rb
-│           └── get_attachment_tool.rb
+│       └── tools/*.rb             # MCP tool classes
 ├── views/
 │   └── login.erb          # Login form (username + password only)
 ├── spec/                  # RSpec test suite

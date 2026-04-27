@@ -3,15 +3,15 @@ module MailMCP
     tool_name "move_message"
     description "Move a message to another folder"
 
-    input_schema({
-                   type: "object",
-                   properties: {
-                     folder: { type: "string", description: "Source folder" },
-                     uid: { type: "integer" },
-                     destination: { type: "string", description: "Destination folder" }
-                   },
-                   required: %w[folder uid destination]
-                 })
+    input_schema(
+      type: "object",
+      properties: {
+        folder: { type: "string", description: "Source folder" },
+        uid: { type: "integer" },
+        destination: { type: "string", description: "Destination folder" }
+      },
+      required: %w[folder uid destination]
+    )
 
     def self.call(folder:, uid:, destination:, server_context:)
       ImapClient.connect(server_context.imap_config) do |c|

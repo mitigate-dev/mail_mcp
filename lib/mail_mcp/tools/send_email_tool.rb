@@ -5,20 +5,20 @@ module MailMCP
     tool_name "send_email"
     description "Send an email via SMTP"
 
-    input_schema({
-                   type: "object",
-                   properties: {
-                     to: { type: "string", description: "Recipient address(es), comma-separated" },
-                     subject: { type: "string" },
-                     body: { type: "string", description: "Plain-text body" },
-                     cc: { type: "string" },
-                     bcc: { type: "string" },
-                     html_body: { type: "string", description: "HTML body (optional)" },
-                     attachment_urls: { type: "array", items: { type: "string" },
-                                        description: "S3 presigned URLs to attach" }
-                   },
-                   required: %w[to subject body]
-                 })
+    input_schema(
+      type: "object",
+      properties: {
+        to: { type: "string", description: "Recipient address(es), comma-separated" },
+        subject: { type: "string" },
+        body: { type: "string", description: "Plain-text body" },
+        cc: { type: "string" },
+        bcc: { type: "string" },
+        html_body: { type: "string", description: "HTML body (optional)" },
+        attachment_urls: { type: "array", items: { type: "string" },
+                           description: "S3 presigned URLs to attach" }
+      },
+      required: %w[to subject body]
+    )
 
     def self.call(to:, subject:, body:, server_context:, cc: nil, bcc: nil, html_body: nil, attachment_urls: [])
       mail = build_mail(
