@@ -1,4 +1,4 @@
-require_relative "./support/simplecov"
+require_relative "support/simplecov"
 
 require "base64"
 require "mail"

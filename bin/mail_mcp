@@ -10,21 +10,21 @@ def print_usage
   warn "Usage: mail_mcp <command> [options]"
   warn ""
   warn "Commands:"
-  COMMANDS.each { |name, desc| warn format("  %-10s %s", name, desc) }
+  COMMANDS.each { |name, desc| warn format("  %-10<name>s %<desc>s", name: name, desc: desc) }
   warn ""
   warn "Run `mail_mcp <command> --help` for command-specific options."
 end
 
-def run_generate(argv)
+def load_app_env
   if ENV["RACK_ENV"] != "production"
     require "dotenv"
     Dotenv.load(File.expand_path("../.env", __dir__))
   end
-
   require_relative "../lib/mail_mcp"
+end
 
-  options = {}
-  parser = OptionParser.new do |opts|
+def generate_option_parser(options)
+  OptionParser.new do |opts|
     opts.banner = "Usage: mail_mcp generate [options]"
     opts.separator ""
     opts.separator "Required:"
@@ -41,14 +41,13 @@ def run_generate(argv)
       puts opts
       exit
     end
+    opts.parse!(ARGV, into: options)
   end
-  parser.parse!(argv, into: options)
+end
 
+def normalize_generate_options(options, parser)
   imap_host = options[:"imap-host"]
-  imap_port = options[:"imap-port"] || 993
   smtp_host = options[:"smtp-host"]
-  smtp_port = options[:"smtp-port"] || 587
-
   unless imap_host && smtp_host
     warn "Error: --imap-host and --smtp-host are required"
     warn ""
@@ -56,27 +55,37 @@ def run_generate(argv)
     exit 1
   end
 
-  imap_ssl = options.key?(:"imap-ssl") ? options[:"imap-ssl"] : (imap_port == 993)
-  smtp_ssl = options.key?(:"smtp-ssl") ? options[:"smtp-ssl"] : (smtp_port == 465)
-
-  client_secret = SecureRandom.hex(32)
-  client_id = MailMCP::JwtService.issue_client_id(
+  imap_port = options[:"imap-port"] || 993
+  smtp_port = options[:"smtp-port"] || 587
+  {
     imap_host: imap_host,
     imap_port: imap_port,
-    imap_ssl: imap_ssl,
+    imap_ssl: options.fetch(:"imap-ssl", imap_port == 993),
     smtp_host: smtp_host,
     smtp_port: smtp_port,
-    smtp_ssl: smtp_ssl,
-    client_secret: client_secret
-  )
+    smtp_ssl: options.fetch(:"smtp-ssl", smtp_port == 465)
+  }
+end
 
+def print_generated_client(opts, client_id, client_secret)
   puts ""
   puts "  Client ID:     #{client_id}"
   puts "  Client Secret: #{client_secret}"
   puts ""
-  puts "  IMAP: #{imap_host}:#{imap_port} (ssl=#{imap_ssl})"
-  puts "  SMTP: #{smtp_host}:#{smtp_port} (ssl=#{smtp_ssl})"
+  puts "  IMAP: #{opts[:imap_host]}:#{opts[:imap_port]} (ssl=#{opts[:imap_ssl]})"
+  puts "  SMTP: #{opts[:smtp_host]}:#{opts[:smtp_port]} (ssl=#{opts[:smtp_ssl]})"
   puts ""
+end
+
+def run_generate
+  load_app_env
+  options = {}
+  parser = generate_option_parser(options)
+  opts = normalize_generate_options(options, parser)
+
+  client_secret = SecureRandom.hex(32)
+  client_id = MailMCP::JwtService.issue_client_id(**opts, client_secret: client_secret)
+  print_generated_client(opts, client_id, client_secret)
 end
 
 def run_server(argv)
@@ -88,7 +97,7 @@ command = ARGV.shift
 
 case command
 when "generate"
-  run_generate(ARGV)
+  run_generate
 when "server"
   run_server(ARGV)
 when "-h", "--help", nil
