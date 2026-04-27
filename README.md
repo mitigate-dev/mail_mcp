@@ -1,4 +1,4 @@
-# Mitigate Mail MCP
+# Mail MCP
 
 A hosted [Model Context Protocol](https://modelcontextprotocol.io/) server for IMAP and SMTP email, built in Ruby. It acts as both an OAuth 2.1 Authorization Server and an MCP Resource Server.
 
@@ -8,7 +8,7 @@ A hosted [Model Context Protocol](https://modelcontextprotocol.io/) server for I
 Client (Claude Desktop / MCP Inspector)
   │
   ├─ OAuth 2.1 flow
-  │   GET  /.well-known/oauth-protected-resource   RFC 9728 metadata
+  │   GET  /.well-known/oauth-protected-resource    RFC 9728 metadata
   │   GET  /.well-known/oauth-authorization-server  RFC 8414 metadata
   │   GET  /oauth/authorize                         Login UI
   │   POST /oauth/authorize                         Validate IMAP/SMTP → issue code
@@ -40,11 +40,11 @@ The OAuth flow:
 
 All tokens are **5-part JWE** (`dir` / `A256GCM`), encrypted with `ENCRYPTION_KEY`. There is no separate signing key.
 
-| Token | `typ` claim | Expiry | Contents |
-|---|---|---|---|
-| `client_id` | `client_id` | none | imap/smtp host+port, `client_secret` |
-| Access token | `access` | 8 hours | IMAP + SMTP credentials |
-| Refresh token | `refresh` | 30 days | IMAP + SMTP credentials |
+| Token         | `typ` claim | Expiry  | Contents                             |
+|---------------|-------------|---------|--------------------------------------|
+| `client_id`   | `client_id` | none    | imap/smtp host+port, `client_secret` |
+| Access token  | `access`    | 8 hours | IMAP + SMTP credentials              |
+| Refresh token | `refresh`   | 30 days | IMAP + SMTP credentials              |
 
 ## Directory Structure
 
@@ -79,16 +79,16 @@ mail_mcp/
 
 Copy `.env.sample` to `.env` and fill in the values:
 
-| Variable | Description |
-|---|---|
-| `BASE_URL` | Public URL of this server, e.g. `https://mail.mcp.mitigate.dev` |
-| `ENCRYPTION_KEY` | AES-256 key (base64-encoded 32 bytes) — used for **all** JWE tokens |
-| `AWS_ACCESS_KEY_ID` | AWS credentials for S3 attachment storage |
-| `AWS_SECRET_ACCESS_KEY` | AWS credentials for S3 attachment storage |
-| `AWS_REGION` | S3 bucket region, e.g. `us-east-1` |
-| `AWS_S3_BUCKET` | S3 bucket name for attachments |
-| `PORT` | HTTP port (default `3000`) |
-| `RACK_ENV` | `development` or `production` |
+| Variable                | Description                                                         |
+|-------------------------|---------------------------------------------------------------------|
+| `BASE_URL`              | Public URL of this server, e.g. `https://mail.mcp.example.com`      |
+| `ENCRYPTION_KEY`        | AES-256 key (base64-encoded 32 bytes) — used for **all** JWE tokens |
+| `AWS_ACCESS_KEY_ID`     | AWS credentials for S3 attachment storage                           |
+| `AWS_SECRET_ACCESS_KEY` | AWS credentials for S3 attachment storage                           |
+| `AWS_REGION`            | S3 bucket region, e.g. `us-east-1`                                  |
+| `AWS_S3_BUCKET`         | S3 bucket name for attachments                                      |
+| `PORT`                  | HTTP port (default `3000`)                                          |
+| `RACK_ENV`              | `development` or `production`                                       |
 
 Generate `ENCRYPTION_KEY`:
 ```bash
@@ -132,14 +132,14 @@ bundle exec bin/mail_mcp generate \
 #   SMTP: smtp.gmail.com:587 (ssl=false)
 ```
 
-| Flag | Default | Description |
-|---|---|---|
-| `--imap-host=HOST` | required | IMAP server hostname |
-| `--imap-port=PORT` | `993` | IMAP port |
-| `--[no-]imap-ssl` | `true` when port 993 | Enable SSL/TLS for IMAP |
-| `--smtp-host=HOST` | required | SMTP server hostname |
-| `--smtp-port=PORT` | `587` | SMTP port |
-| `--[no-]smtp-ssl` | `true` when port 465 | Enable SSL/TLS for SMTP |
+| Flag               | Default              | Description             |
+|--------------------|----------------------|-------------------------|
+| `--imap-host=HOST` | required             | IMAP server hostname    |
+| `--imap-port=PORT` | `993`                | IMAP port               |
+| `--[no-]imap-ssl`  | `true` when port 993 | Enable SSL/TLS for IMAP |
+| `--smtp-host=HOST` | required             | SMTP server hostname    |
+| `--smtp-port=PORT` | `587`                | SMTP port               |
+| `--[no-]smtp-ssl`  | `true` when port 465 | Enable SSL/TLS for SMTP |
 
 ## OAuth 2.1 Flow
 
@@ -152,17 +152,17 @@ bundle exec bin/mail_mcp generate \
 
 ## MCP Tools
 
-| Tool | Parameters | Description |
-|---|---|---|
-| `list_mailboxes` | — | List all IMAP folders |
-| `list_mail_messages` | `folder`, `page`, `per_page` | List messages with pagination |
-| `get_mail_message` | `folder`, `uid` | Fetch full message; attachments uploaded to S3 and returned as presigned URLs |
-| `search_mail_messages` | `folder`, `query` | Raw IMAP SEARCH criteria, e.g. `UNSEEN` or `FROM alice@example.com SINCE 01-Jan-2025` |
-| `send_mail_message` | `to`, `subject`, `text_body`, `cc`, `bcc`, `html_body`, `attachment_urls`, `folder` | Send via SMTP and append to the Sent folder via IMAP; attachments fetched from S3 presigned URLs |
-| `create_draft_mail_message` | `to`, `subject`, `text_body`, `cc`, `bcc`, `html_body`, `attachment_urls`, `folder` | Append to Drafts via IMAP APPEND; attachments fetched from S3 presigned URLs |
-| `delete_mail_message` | `folder`, `uid` | Mark `\Deleted` + EXPUNGE |
-| `move_mail_message` | `folder`, `uid`, `destination` | IMAP MOVE (or COPY+DELETE fallback) |
-| `update_mail_message_flags` | `folder`, `uid`, `add`, `remove` | Add/remove IMAP flags, e.g. `\Seen`, `\Flagged` |
+| Tool                        | Parameters                                                                          | Description                                                                                      |
+|-----------------------------|-------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| `list_mailboxes`            | —                                                                                   | List all IMAP folders                                                                            |
+| `list_mail_messages`        | `folder`, `page`, `per_page`                                                        | List messages with pagination                                                                    |
+| `get_mail_message`          | `folder`, `uid`                                                                     | Fetch full message; attachments uploaded to S3 and returned as presigned URLs                    |
+| `search_mail_messages`      | `folder`, `query`                                                                   | Raw IMAP SEARCH criteria, e.g. `UNSEEN` or `FROM alice@example.com SINCE 01-Jan-2025`            |
+| `send_mail_message`         | `to`, `subject`, `text_body`, `cc`, `bcc`, `html_body`, `attachment_urls`, `folder` | Send via SMTP and append to the Sent folder via IMAP; attachments fetched from S3 presigned URLs |
+| `create_draft_mail_message` | `to`, `subject`, `text_body`, `cc`, `bcc`, `html_body`, `attachment_urls`, `folder` | Append to Drafts via IMAP APPEND; attachments fetched from S3 presigned URLs                     |
+| `delete_mail_message`       | `folder`, `uid`                                                                     | Mark `\Deleted` + EXPUNGE                                                                        |
+| `move_mail_message`         | `folder`, `uid`, `destination`                                                      | IMAP MOVE (or COPY+DELETE fallback)                                                              |
+| `update_mail_message_flags` | `folder`, `uid`, `add`, `remove`                                                    | Add/remove IMAP flags, e.g. `\Seen`, `\Flagged`                                                  |
 
 Attachments are never returned as binary data — they are uploaded to S3 on first access and returned as presigned URLs valid for 7 days.
 
