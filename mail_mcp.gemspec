@@ -10,10 +10,13 @@ Gem::Specification.new do |spec|
   spec.description = "A Model Context Protocol server providing IMAP/SMTP email tools " \
                      "behind an OAuth 2.1 authorization server."
   spec.license = "MIT"
+  spec.homepage = "https://github.com/mitigate-dev/mail_mcp"
   spec.required_ruby_version = ">= 3.4"
   spec.metadata["rubygems_mfa_required"] = "true"
+  spec.metadata["homepage_uri"] = spec.homepage
+  spec.metadata["source_code_uri"] = "https://github.com/mitigate-dev/mail_mcp"
 
-  spec.files = Dir["lib/**/*.rb", "views/**/*", "config.ru", "config/**/*", "bin/*", "README.md"]
+  spec.files = Dir["lib/**/*.rb", "views/**/*", "config.ru", "config/**/*", "bin/*", "README.md", "LICENSE"]
   spec.bindir = "bin"
   spec.executables = ["mail_mcp"]
   spec.require_paths = ["lib"]
