@@ -1,0 +1,51 @@
+name: CI
+
+env:
+  COVERAGE: 1
+  CI: 1
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  rubocop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Ruby and install gems
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - name: Lint code for consistent style
+        run: bundle exec rubocop -f github
+
+  rspec:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Ruby and install gems
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Run tests
+        run: bundle exec rspec --profile 10 --format RspecJunitFormatter --out rspec-junit.xml --format progress spec
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          url: ${{ secrets.CODECOV_URL }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v6
+        with:
+          url: ${{ secrets.CODECOV_URL }}
+          token: ${{ secrets.CODECOV_TOKEN }}

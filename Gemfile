@@ -11,7 +11,9 @@ end
 group :development, :test do
   gem "rack-test", "~> 2.1"
   gem "rspec", "~> 3.13"
+  gem "rspec_junit_formatter"
   gem "rubocop", "~> 1.75", require: false
   gem "rubocop-rspec", "~> 3.5", require: false
+  gem "simplecov-cobertura", require: false
   gem "webmock", "~> 3.23"
 end
