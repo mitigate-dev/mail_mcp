@@ -205,7 +205,7 @@ RSpec.describe MailMCP::App do
                                      list_mailboxes list_mail_messages get_mail_message search_mail_messages
                                      send_mail_message create_draft_mail_message delete_mail_message
                                      move_mail_message update_mail_message_flags
-])
+                                   ])
     end
 
     it "returns 401 for an invalid Bearer token" do

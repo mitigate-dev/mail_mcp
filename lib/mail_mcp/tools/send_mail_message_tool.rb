@@ -20,12 +20,15 @@ module MailMCP
         bcc: { type: "string" },
         html_body: { type: "string", description: "HTML body (optional)" },
         attachment_urls: { type: "array", items: { type: "string" },
-                           description: "S3 presigned URLs to attach" }
+                           description: "S3 presigned URLs to attach" },
+        folder: { type: "string", description: "IMAP folder to save the sent message (default: Sent)",
+                  default: "Sent" }
       },
       required: %w[to subject body]
     )
 
-    def self.call(to:, subject:, body:, server_context:, cc: nil, bcc: nil, html_body: nil, attachment_urls: [])
+    def self.call(to:, subject:, body:, server_context:, cc: nil, bcc: nil, html_body: nil,
+                  attachment_urls: [], folder: "Sent")
       mail = MailBuilder.build(
         from: server_context.imap_config[:username],
         to: to, subject: subject, body: body,
@@ -33,7 +36,8 @@ module MailMCP
         attachment_urls: attachment_urls
       )
       SmtpClient.send(server_context.smtp_config, mail)
-      MCP::Tool::Response.new([{ type: "text", text: "Email sent successfully to #{to}" }])
+      ImapClient.connect(server_context.imap_config) { |c| c.append_message(folder: folder, raw_message: mail.to_s) }
+      MCP::Tool::Response.new([{ type: "text", text: "Email sent successfully to #{to} and saved to #{folder}" }])
     end
   end
 end

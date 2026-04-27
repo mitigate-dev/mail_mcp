@@ -36,7 +36,7 @@ Metrics/BlockLength:
 Metrics/AbcSize:
   Max: 30
 Metrics/ParameterLists:
-  Max: 8
+  Max: 9
 
 # URI.open is intentional for fetching attachment URLs
 Security/Open:

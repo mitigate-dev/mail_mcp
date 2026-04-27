@@ -158,7 +158,7 @@ bundle exec bin/mail_mcp generate \
 | `list_mail_messages` | `folder`, `page`, `per_page` | List messages with pagination |
 | `get_mail_message` | `folder`, `uid` | Fetch full message; attachments uploaded to S3 and returned as presigned URLs |
 | `search_mail_messages` | `folder`, `query` | Raw IMAP SEARCH criteria, e.g. `UNSEEN` or `FROM alice@example.com SINCE 01-Jan-2025` |
-| `send_mail_message` | `to`, `subject`, `body`, `cc`, `bcc`, `html_body`, `attachment_urls` | Send via SMTP; attachments fetched from S3 presigned URLs |
+| `send_mail_message` | `to`, `subject`, `body`, `cc`, `bcc`, `html_body`, `attachment_urls`, `folder` | Send via SMTP and append to the Sent folder via IMAP; attachments fetched from S3 presigned URLs |
 | `create_draft_mail_message` | `to`, `subject`, `body`, `folder` | Append to Drafts via IMAP APPEND |
 | `delete_mail_message` | `folder`, `uid` | Mark `\Deleted` + EXPUNGE |
 | `move_mail_message` | `folder`, `uid`, `destination` | IMAP MOVE (or COPY+DELETE fallback) |
