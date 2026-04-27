@@ -89,8 +89,10 @@ def run_generate
 end
 
 def run_server(argv)
+  require "puma/cli"
   config = File.expand_path("../config/puma.rb", __dir__)
-  exec("bundle", "exec", "puma", "-C", config, *argv)
+  rackup = File.expand_path("../config.ru", __dir__)
+  Puma::CLI.new(["-C", config, rackup, *argv]).run
 end
 
 command = ARGV.shift
