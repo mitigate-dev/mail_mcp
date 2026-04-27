@@ -1,6 +1,8 @@
 require "base64"
 require "json"
 
+require_relative "mail_mcp/version"
+
 module MailMCP
 end
 

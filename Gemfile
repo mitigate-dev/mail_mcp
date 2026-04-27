@@ -2,17 +2,7 @@ source "https://rubygems.org"
 
 ruby "3.4.9"
 
-gem "aws-sdk-s3", "~> 1.0"
-gem "base64", "~> 0.2"
-gem "json-jwt", "~> 1.16"
-gem "mail", "~> 2.8"
-gem "mcp", "~> 0.14"
-gem "puma", "~> 6.0"
-gem "rack", "~> 3.0"
-gem "securerandom"
-gem "sinatra", "~> 4.0"
-gem "sinatra-contrib", "~> 4.0"
-gem "zeitwerk", "~> 2.7"
+gemspec
 
 group :development do
   gem "dotenv", "~> 3.0"
