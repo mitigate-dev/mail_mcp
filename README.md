@@ -89,6 +89,7 @@ Copy `.env.sample` to `.env` and fill in the values:
 | `AWS_S3_BUCKET`         | S3 bucket name for attachments                                      |
 | `PORT`                  | HTTP port (default `3000`)                                          |
 | `RACK_ENV`              | `development` or `production`                                       |
+| `MAIL_MCP_LOG_LEVEL`    | Log level (`DEBUG`, `INFO`, `WARN`, `ERROR`, default `INFO`)        |
 
 Generate `ENCRYPTION_KEY`:
 ```bash

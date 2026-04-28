@@ -11,6 +11,8 @@ ENV["BASE_URL"] = "https://mail.mcp.example.com"
 
 require_relative "../lib/mail_mcp"
 
+MailMCP.logger = Logger.new(IO::NULL)
+
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true

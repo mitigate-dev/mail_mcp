@@ -10,9 +10,13 @@ module MailMCP
 
     def self.send(config, mail)
       smtp_open(config) do |s|
+        MailMCP.logger.info do
+          "SMTP send to=#{Array(mail.to).join(",")} from=#{mail.from&.first} subject=#{mail.subject.inspect}"
+        end
         s.send_message(mail.to_s, mail.from.first, mail.to)
       end
     rescue Net::SMTPError, SocketError => e
+      MailMCP.logger.error { "SMTP send failed: #{e.class}: #{e.message}" }
       raise ConnectionError, "SMTP send failed: #{e.message}"
     end
 
@@ -20,6 +24,9 @@ module MailMCP
     READ_TIMEOUT = 30
 
     def self.smtp_open(config, &)
+      MailMCP.logger.debug do
+        "SMTP connect host=#{config[:host]} port=#{config[:port]} ssl=#{config[:ssl]} user=#{config[:username]}"
+      end
       smtp = Net::SMTP.new(config[:host], config[:port])
       smtp.open_timeout = OPEN_TIMEOUT
       smtp.read_timeout = READ_TIMEOUT
@@ -30,6 +37,9 @@ module MailMCP
       end
       smtp.start(config[:host], config[:username], config[:password], :login, &)
     rescue StandardError => e
+      MailMCP.logger.error do
+        "SMTP connection failed host=#{config[:host]}:#{config[:port]} ssl=#{config[:ssl]}: #{e.class}: #{e.message}"
+      end
       raise ConnectionError, "SMTP connection failed: #{e.message}"
     end
     private_class_method :smtp_open

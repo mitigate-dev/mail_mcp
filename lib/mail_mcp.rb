@@ -1,9 +1,17 @@
 require "base64"
 require "json"
+require "logger"
 
 require_relative "mail_mcp/version"
 
 module MailMCP
+  def self.logger
+    @logger ||= Logger.new($stdout, level: ENV.fetch("MAIL_MCP_LOG_LEVEL", "INFO"), progname: "mail_mcp")
+  end
+
+  class << self
+    attr_writer :logger
+  end
 end
 
 require_relative "mail_mcp/jwt_service"
