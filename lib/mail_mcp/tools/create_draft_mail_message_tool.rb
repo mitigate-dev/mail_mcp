@@ -28,14 +28,13 @@ module MailMCP
 
     def self.call(to:, subject:, text_body:, server_context:, cc: nil, bcc: nil, html_body: nil,
                   attachment_urls: [], folder: "Drafts")
-      imap_config = server_context.imap_config
       mail = MailBuilder.build(
-        from: imap_config[:username],
+        from: format_from(server_context),
         to: to, subject: subject, text_body: text_body,
         cc: cc, bcc: bcc, html_body: html_body,
         attachment_urls: attachment_urls
       )
-      ImapClient.connect(imap_config) do |c|
+      ImapClient.connect(server_context.imap_config) do |c|
         c.append_message(folder: folder, raw_message: mail.to_s, flags: [:Draft])
       end
       MCP::Tool::Response.new([{ type: "text", text: "Draft saved to #{folder}" }])

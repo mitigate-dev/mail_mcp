@@ -30,7 +30,7 @@ module MailMCP
     def self.call(to:, subject:, text_body:, server_context:, cc: nil, bcc: nil, html_body: nil,
                   attachment_urls: [], folder: "Sent")
       mail = MailBuilder.build(
-        from: server_context.imap_config[:username],
+        from: format_from(server_context),
         to: to, subject: subject, text_body: text_body,
         cc: cc, bcc: bcc, html_body: html_body,
         attachment_urls: attachment_urls

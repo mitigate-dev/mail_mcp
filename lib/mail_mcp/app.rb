@@ -105,6 +105,7 @@ module MailMCP
       smtp_ssl  = client_config["smtp_ssl"]
       smtp_user = use_same ? imap_user : params[:smtp_username].to_s.strip
       smtp_pass = use_same ? imap_pass : params[:smtp_password].to_s
+      full_name = params[:full_name].to_s.strip
 
       errors = []
 
@@ -129,6 +130,7 @@ module MailMCP
           imap_host: imap_host, smtp_host: smtp_host,
           imap_username: imap_user, imap_password: imap_pass,
           smtp_username: smtp_user, smtp_password: smtp_pass,
+          full_name: full_name,
           use_same_credentials: use_same,
           errors: errors
         }
@@ -139,7 +141,8 @@ module MailMCP
         "imap_host" => imap_host, "imap_port" => imap_port, "imap_ssl" => imap_ssl,
         "imap_username" => imap_user, "imap_password" => imap_pass,
         "smtp_host" => smtp_host, "smtp_port" => smtp_port, "smtp_ssl" => smtp_ssl,
-        "smtp_username" => smtp_user, "smtp_password" => smtp_pass
+        "smtp_username" => smtp_user, "smtp_password" => smtp_pass,
+        "full_name" => full_name
       }
 
       code = JwtService.issue_code(
@@ -215,7 +218,8 @@ module MailMCP
         smtp_config: {
           host: creds["smtp_host"], port: creds["smtp_port"].to_i,
           ssl: creds["smtp_ssl"], username: creds["smtp_username"], password: creds["smtp_password"]
-        }
+        },
+        full_name: creds["full_name"]
       )
       [context, nil]
     rescue JwtService::Error => e
