@@ -5,6 +5,9 @@ module MailMCP
     class AuthError < StandardError; end
     class ConnectionError < StandardError; end
 
+    OPEN_TIMEOUT = 10
+    IDLE_TIMEOUT = 30
+
     attr_reader :imap
 
     def initialize(imap)
@@ -12,7 +15,7 @@ module MailMCP
     end
 
     def self.validate!(config)
-      conn = Net::IMAP.new(config[:host], port: config[:port], ssl: config[:ssl])
+      conn = Net::IMAP.new(config[:host], port: config[:port], ssl: config[:ssl], open_timeout: OPEN_TIMEOUT, idle_response_timeout: IDLE_TIMEOUT)
       conn.login(config[:username], config[:password])
       conn.logout
       conn.disconnect
@@ -23,7 +26,7 @@ module MailMCP
     end
 
     def self.connect(config)
-      conn = Net::IMAP.new(config[:host], port: config[:port], ssl: config[:ssl])
+      conn = Net::IMAP.new(config[:host], port: config[:port], ssl: config[:ssl], open_timeout: OPEN_TIMEOUT, idle_response_timeout: IDLE_TIMEOUT)
       conn.login(config[:username], config[:password])
       client = new(conn)
       yield client

@@ -16,8 +16,13 @@ module MailMCP
       raise ConnectionError, "SMTP send failed: #{e.message}"
     end
 
+    OPEN_TIMEOUT = 10
+    READ_TIMEOUT = 30
+
     def self.smtp_open(config, &)
       smtp = Net::SMTP.new(config[:host], config[:port])
+      smtp.open_timeout = OPEN_TIMEOUT
+      smtp.read_timeout = READ_TIMEOUT
       if config[:ssl]
         smtp.enable_tls
       else
