@@ -94,27 +94,32 @@
 
     <label for="imap_username">IMAP Username</label>
     <input type="text" id="imap_username" name="imap_username"
-           placeholder="you@example.com" autocomplete="username" required>
+           placeholder="you@example.com" autocomplete="username" required
+           value="<%= escape_html(@params[:imap_username]) %>">
 
     <label for="imap_password">IMAP Password</label>
     <input type="password" id="imap_password" name="imap_password"
-           placeholder="••••••••" autocomplete="current-password" required>
+           placeholder="••••••••" autocomplete="current-password" required
+           value="<%= escape_html(@params[:imap_password]) %>">
 
+    <% use_same = @params.fetch(:use_same_credentials, true) %>
     <div class="checkbox-row">
-      <input type="checkbox" id="use_same" name="use_same_credentials" value="1" checked>
+      <input type="checkbox" id="use_same" name="use_same_credentials" value="1" <%= "checked" if use_same %>>
       <label for="use_same">Use the same username and password for SMTP</label>
     </div>
 
-    <div id="smtp-fields" style="display:none">
+    <div id="smtp-fields" style="display:<%= use_same ? "none" : "block" %>">
       <div class="section-title">SMTP (Outgoing)</div>
 
       <label for="smtp_username">SMTP Username</label>
       <input type="text" id="smtp_username" name="smtp_username"
-             placeholder="you@example.com" autocomplete="username">
+             placeholder="you@example.com" autocomplete="username"
+             value="<%= escape_html(@params[:smtp_username]) %>">
 
       <label for="smtp_password">SMTP Password</label>
       <input type="password" id="smtp_password" name="smtp_password"
-             placeholder="••••••••" autocomplete="current-password">
+             placeholder="••••••••" autocomplete="current-password"
+             value="<%= escape_html(@params[:smtp_password]) %>">
     </div>
 
     <button type="submit">Connect</button>

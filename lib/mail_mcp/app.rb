@@ -127,6 +127,9 @@ module MailMCP
           client_id: client_id, redirect_uri: redirect_uri, state: state,
           code_challenge: code_challenge, code_challenge_method: code_challenge_method,
           imap_host: imap_host, smtp_host: smtp_host,
+          imap_username: imap_user, imap_password: imap_pass,
+          smtp_username: smtp_user, smtp_password: smtp_pass,
+          use_same_credentials: use_same,
           errors: errors
         }
         return erb :login
