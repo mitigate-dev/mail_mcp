@@ -12,6 +12,7 @@ RSpec.describe MailMCP::SendMailMessageTool do
   before do
     allow(MailMCP::SmtpClient).to receive(:send)
     allow(MailMCP::ImapClient).to receive(:connect).and_yield(imap_client)
+    allow(imap_client).to receive(:list_mailboxes).and_return(["INBOX", "Sent", "Sent Items"])
   end
 
   it "builds a Mail object with the correct fields and sends it" do

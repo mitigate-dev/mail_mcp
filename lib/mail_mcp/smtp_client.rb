@@ -10,15 +10,25 @@ module MailMCP
 
     def self.send(config, mail)
       smtp_open(config) do |s|
+        recipients = mail.destinations
         MailMCP.logger.info do
-          "SMTP send to=#{Array(mail.to).join(",")} from=#{mail.from&.first} subject=#{mail.subject.inspect}"
+          "SMTP send to=#{recipients.join(",")} from=#{mail.from&.first} subject=#{mail.subject.inspect}"
         end
-        s.send_message(mail.to_s, mail.from.first, mail.to)
+        s.send_message(encoded_for_wire(mail), mail.from.first, recipients)
       end
     rescue Net::SMTPError, SocketError => e
       MailMCP.logger.error { "SMTP send failed: #{e.class}: #{e.message}" }
       raise ConnectionError, "SMTP send failed: #{e.message}"
     end
+
+    def self.encoded_for_wire(mail)
+      return mail.encoded if mail.bcc.nil? || mail.bcc.empty?
+
+      wire = Mail.new(mail.encoded)
+      wire.bcc = nil
+      wire.encoded
+    end
+    private_class_method :encoded_for_wire
 
     OPEN_TIMEOUT = 10
     READ_TIMEOUT = 30

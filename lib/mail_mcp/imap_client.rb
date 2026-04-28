@@ -84,22 +84,7 @@ module MailMCP
         return nil
       end
 
-      raw = data.attr["RFC822"]
-      flags = data.attr["FLAGS"]
-      parsed = Mail.new(raw)
-      attachments = extract_attachments(parsed)
-      {
-        uid: uid,
-        subject: parsed.subject,
-        from: parsed.from,
-        to: parsed.to,
-        cc: parsed.cc,
-        date: parsed.date&.iso8601,
-        text_body: parsed.text_part&.decoded,
-        html_body: parsed.html_part&.decoded,
-        flags: flags,
-        attachments: attachments
-      }
+      format_message(uid: uid, parsed: Mail.new(data.attr["RFC822"]), flags: data.attr["FLAGS"])
     end
 
     def search_messages(folder:, query:)
@@ -139,9 +124,11 @@ module MailMCP
       @imap.uid_store(uid.to_i, "-FLAGS", remove) unless remove.empty?
     end
 
-    def append_message(folder:, raw_message:)
-      MailMCP.logger.info { "IMAP append_message folder=#{folder.inspect} bytes=#{raw_message.bytesize}" }
-      @imap.append(folder, raw_message, [:Draft], Time.now)
+    def append_message(folder:, raw_message:, flags: [:Seen])
+      MailMCP.logger.info do
+        "IMAP append_message folder=#{folder.inspect} flags=#{flags.inspect} bytes=#{raw_message.bytesize}"
+      end
+      @imap.append(folder, raw_message, flags, Time.now)
     end
 
     def self.open_connection(config)
@@ -155,13 +142,40 @@ module MailMCP
 
     private
 
+    def format_message(uid:, parsed:, flags:)
+      {
+        uid: uid,
+        message_id: parsed.message_id,
+        in_reply_to: parsed.in_reply_to,
+        references: parsed.references,
+        subject: parsed.subject,
+        from: parsed.from,
+        sender: parsed.sender,
+        reply_to: parsed.reply_to,
+        to: parsed.to,
+        cc: parsed.cc,
+        bcc: parsed.bcc,
+        date: parsed.date&.iso8601,
+        text_body: parsed.text_part&.decoded,
+        html_body: parsed.html_part&.decoded,
+        flags: flags,
+        attachments: extract_attachments(parsed)
+      }
+    end
+
     def format_envelope(msg)
       env = msg.attr["ENVELOPE"]
       {
         uid: msg.attr["UID"],
+        message_id: env.message_id,
+        in_reply_to: env.in_reply_to,
         subject: env.subject,
         from: format_addresses(env.from),
+        sender: format_addresses(env.sender),
+        reply_to: format_addresses(env.reply_to),
         to: format_addresses(env.to),
+        cc: format_addresses(env.cc),
+        bcc: format_addresses(env.bcc),
         date: env.date,
         size: msg.attr["RFC822.SIZE"],
         flags: msg.attr["FLAGS"]

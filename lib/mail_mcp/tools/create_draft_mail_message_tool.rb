@@ -35,7 +35,9 @@ module MailMCP
         cc: cc, bcc: bcc, html_body: html_body,
         attachment_urls: attachment_urls
       )
-      ImapClient.connect(imap_config) { |c| c.append_message(folder: folder, raw_message: mail.to_s) }
+      ImapClient.connect(imap_config) do |c|
+        c.append_message(folder: folder, raw_message: mail.to_s, flags: [:Draft])
+      end
       MCP::Tool::Response.new([{ type: "text", text: "Draft saved to #{folder}" }])
     end
   end

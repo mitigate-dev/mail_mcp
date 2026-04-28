@@ -35,8 +35,25 @@ module MailMCP
         cc: cc, bcc: bcc, html_body: html_body,
         attachment_urls: attachment_urls
       )
+      ImapClient.connect(server_context.imap_config) do |c|
+        unless c.list_mailboxes.include?(folder)
+          raise ImapClient::ConnectionError,
+                "IMAP folder #{folder.inspect} does not exist. Use list_mailboxes to see available folders."
+        end
+      end
+
       SmtpClient.send(server_context.smtp_config, mail)
-      ImapClient.connect(server_context.imap_config) { |c| c.append_message(folder: folder, raw_message: mail.to_s) }
+
+      begin
+        ImapClient.connect(server_context.imap_config) do |c|
+          c.append_message(folder: folder, raw_message: mail.to_s, flags: [:Seen])
+        end
+      rescue StandardError => e
+        MailMCP.logger.warn { "Email sent but failed to save to IMAP folder=#{folder.inspect}: #{e.message}" }
+        text = "Email sent successfully to #{to}, but could not be saved to #{folder}: #{e.message}"
+        return MCP::Tool::Response.new([{ type: "text", text: text }])
+      end
+
       MCP::Tool::Response.new([{ type: "text", text: "Email sent successfully to #{to} and saved to #{folder}" }])
     end
   end
