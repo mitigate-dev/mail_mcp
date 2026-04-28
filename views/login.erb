@@ -75,8 +75,12 @@
     SMTP <span><%= @params[:smtp_host] %></span>
   </div>
 
-  <% if @params[:error] %>
-    <div class="error"><%= @params[:error] %></div>
+  <% if @params[:errors] && !@params[:errors].empty? %>
+    <div class="error">
+      <% @params[:errors].each do |err| %>
+        <div><%= err %></div>
+      <% end %>
+    </div>
   <% end %>
 
   <form method="POST" action="/oauth/authorize">
