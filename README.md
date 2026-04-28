@@ -36,6 +36,8 @@ The OAuth flow:
 6. Client exchanges the authorization code (`POST /oauth/token`) with `client_id` + `client_secret`; receives `access_token` + `refresh_token`
 7. Every MCP request carries `Authorization: Bearer <access_token>`; the server decrypts credentials per-request
 
+![Login form](assets/form.png)
+
 ### Token formats
 
 All tokens are **5-part JWE** (`dir` / `A256GCM`), encrypted with `ENCRYPTION_KEY`. There is no separate signing key.
