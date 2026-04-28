@@ -70,92 +70,29 @@ module MailMCP
       client_config = decode_client_id!(params[:client_id])
       return if client_config.nil?
 
-      @params = {
-        client_id: params[:client_id],
-        redirect_uri: params[:redirect_uri],
-        state: params[:state],
-        code_challenge: params[:code_challenge],
-        code_challenge_method: params[:code_challenge_method],
-        imap_host: client_config["imap_host"],
-        smtp_host: client_config["smtp_host"],
-        error: nil
-      }
+      params[:use_same_credentials] = "1"
+      @form = LoginForm.new(params, client_config)
       erb :login
     end
 
     post "/oauth/authorize" do
-      client_id    = params[:client_id]
-      redirect_uri = params[:redirect_uri]
-      state        = params[:state]
-      code_challenge        = params[:code_challenge]
-      code_challenge_method = params[:code_challenge_method]
-
-      client_config = decode_client_id!(client_id)
+      client_config = decode_client_id!(params[:client_id])
       return if client_config.nil?
 
-      imap_host = client_config["imap_host"]
-      imap_port = client_config["imap_port"]
-      imap_ssl  = client_config["imap_ssl"]
-      imap_user = params[:imap_username].to_s.strip
-      imap_pass = params[:imap_password].to_s
-
-      use_same  = params[:use_same_credentials] == "1"
-      smtp_host = client_config["smtp_host"]
-      smtp_port = client_config["smtp_port"]
-      smtp_ssl  = client_config["smtp_ssl"]
-      smtp_user = use_same ? imap_user : params[:smtp_username].to_s.strip
-      smtp_pass = use_same ? imap_pass : params[:smtp_password].to_s
-      full_name = params[:full_name].to_s.strip
-
-      errors = []
-
-      imap_cfg = { host: imap_host, port: imap_port, ssl: imap_ssl, username: imap_user, password: imap_pass }
-      begin
-        ImapClient.validate!(imap_cfg)
-      rescue ImapClient::AuthError, ImapClient::ConnectionError => e
-        errors << "IMAP: #{e.message}"
-      end
-
-      smtp_cfg = { host: smtp_host, port: smtp_port, ssl: smtp_ssl, username: smtp_user, password: smtp_pass }
-      begin
-        SmtpClient.validate!(smtp_cfg)
-      rescue SmtpClient::ConnectionError => e
-        errors << "SMTP: #{e.message}"
-      end
-
-      unless errors.empty?
-        @params = {
-          client_id: client_id, redirect_uri: redirect_uri, state: state,
-          code_challenge: code_challenge, code_challenge_method: code_challenge_method,
-          imap_host: imap_host, smtp_host: smtp_host,
-          imap_username: imap_user, imap_password: imap_pass,
-          smtp_username: smtp_user, smtp_password: smtp_pass,
-          full_name: full_name,
-          use_same_credentials: use_same,
-          errors: errors
-        }
-        return erb :login
-      end
-
-      creds = {
-        "imap_host" => imap_host, "imap_port" => imap_port, "imap_ssl" => imap_ssl,
-        "imap_username" => imap_user, "imap_password" => imap_pass,
-        "smtp_host" => smtp_host, "smtp_port" => smtp_port, "smtp_ssl" => smtp_ssl,
-        "smtp_username" => smtp_user, "smtp_password" => smtp_pass,
-        "full_name" => full_name
-      }
+      @form = LoginForm.new(params, client_config)
+      return erb :login unless @form.valid?
 
       code = JwtService.issue_code(
-        creds: creds,
-        code_challenge: code_challenge,
-        redirect_uri: redirect_uri,
-        client_id: client_id
+        creds: @form.creds,
+        code_challenge: params[:code_challenge],
+        redirect_uri: params[:redirect_uri],
+        client_id: params[:client_id]
       )
 
-      redirect_to = URI.parse(redirect_uri)
+      redirect_to = URI.parse(params[:redirect_uri])
       query = URI.decode_www_form(redirect_to.query.to_s)
       query << ["code", code]
-      query << ["state", state] if state
+      query << ["state", params[:state]] if params[:state]
       redirect_to.query = URI.encode_www_form(query)
       redirect redirect_to.to_s
     end
@@ -219,6 +156,7 @@ module MailMCP
           host: creds["smtp_host"], port: creds["smtp_port"].to_i,
           ssl: creds["smtp_ssl"], username: creds["smtp_username"], password: creds["smtp_password"]
         },
+        email: creds["email"],
         full_name: creds["full_name"]
       )
       [context, nil]

@@ -10,7 +10,7 @@ module MailMCP
     CRED_KEYS = %w[
       imap_host imap_port imap_ssl imap_username imap_password
       smtp_host smtp_port smtp_ssl smtp_username smtp_password
-      full_name
+      email full_name
     ].freeze
 
     # Access token — JWE (dir/A256GCM), credentials embedded directly in payload
