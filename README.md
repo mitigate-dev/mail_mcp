@@ -123,13 +123,13 @@ bundle exec bin/mail_mcp generate \
   --imap-host=imap.gmail.com \
   --imap-port=993 \
   --smtp-host=smtp.gmail.com \
-  --smtp-port=587
+  --smtp-port=465
 
 #   Client ID:     eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0...<encrypted>
 #   Client Secret: 713576e2f94802b9d9abfd755e38e29b63e491df...
 #
 #   IMAP: imap.gmail.com:993 (ssl=true)
-#   SMTP: smtp.gmail.com:587 (ssl=false)
+#   SMTP: smtp.gmail.com:465 (ssl=true)
 ```
 
 | Flag               | Default              | Description             |
@@ -138,7 +138,7 @@ bundle exec bin/mail_mcp generate \
 | `--imap-port=PORT` | `993`                | IMAP port               |
 | `--[no-]imap-ssl`  | `true` when port 993 | Enable SSL/TLS for IMAP |
 | `--smtp-host=HOST` | required             | SMTP server hostname    |
-| `--smtp-port=PORT` | `587`                | SMTP port               |
+| `--smtp-port=PORT` | `465`                | SMTP port               |
 | `--[no-]smtp-ssl`  | `true` when port 465 | Enable SSL/TLS for SMTP |
 
 ## OAuth 2.1 Flow

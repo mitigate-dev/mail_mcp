@@ -18,7 +18,11 @@ module MailMCP
 
     def self.smtp_open(config, &)
       smtp = Net::SMTP.new(config[:host], config[:port])
-      smtp.enable_starttls_auto unless config[:ssl]
+      if config[:ssl]
+        smtp.enable_tls
+      else
+        smtp.enable_starttls_auto
+      end
       smtp.start(config[:host], config[:username], config[:password], :login, &)
     rescue StandardError => e
       raise ConnectionError, "SMTP connection failed: #{e.message}"
