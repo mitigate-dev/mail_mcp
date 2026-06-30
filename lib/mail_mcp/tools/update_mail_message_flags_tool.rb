@@ -30,8 +30,9 @@ module MailMCP
         folder: { type: "string" },
         uid: { type: "integer" },
         add: { type: "array", items: { type: "string" },
-               description: "Flags to add. System flags: '\\\\Seen', '\\\\Answered', " \
-                            "'\\\\Flagged', '\\\\Deleted', '\\\\Draft'. Color names " \
+               description: "Flags to add. Settable system flags: '\\\\Seen', '\\\\Answered', " \
+                            "'\\\\Flagged', '\\\\Deleted', '\\\\Draft' (\\\\Recent is recognized " \
+                            "but cannot be set by clients). Color names " \
                             "('red', 'orange', 'green', 'blue', 'purple') map to " \
                             "$labelN keywords. Any other value is sent as a custom keyword." },
         remove: { type: "array", items: { type: "string" }, description: "Flags to remove" }
@@ -55,7 +56,10 @@ module MailMCP
       name = flag.to_s.delete_prefix("\\")
       return COLOR_KEYWORDS.fetch(name.downcase) if COLOR_KEYWORDS.key?(name.downcase)
 
-      SYSTEM_FLAGS.include?(name) ? name.to_sym : name
+      # System flags are case-insensitive per RFC 3501; normalize to the
+      # canonical capitalization so e.g. "seen" / "\\SEEN" still set :Seen.
+      system_flag = SYSTEM_FLAGS.find { |f| f.casecmp?(name) }
+      system_flag ? system_flag.to_sym : name
     end
   end
 end

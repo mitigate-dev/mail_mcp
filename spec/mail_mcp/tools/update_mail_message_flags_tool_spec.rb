@@ -41,6 +41,13 @@ RSpec.describe MailMCP::UpdateMailMessageFlagsTool do
     )
   end
 
+  it "matches system flags case-insensitively and normalizes capitalization" do
+    described_class.call(folder: "INBOX", uid: 5, add: ["\\seen", "FLAGGED"], server_context: context)
+    expect(imap_client).to have_received(:update_flags).with(
+      hash_including(add: %i[Seen Flagged])
+    )
+  end
+
   it "maps friendly color names to $labelN keywords" do
     described_class.call(folder: "INBOX", uid: 5, add: %w[red blue], server_context: context)
     expect(imap_client).to have_received(:update_flags).with(
