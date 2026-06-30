@@ -17,10 +17,10 @@ module MailMCP
     # Friendly color names map to Mozilla/Thunderbird $labelN keywords, the
     # de-facto cross-client convention for colored flags.
     COLOR_KEYWORDS = {
-      "red"    => "$label1",
+      "red" => "$label1",
       "orange" => "$label2",
-      "green"  => "$label3",
-      "blue"   => "$label4",
+      "green" => "$label3",
+      "blue" => "$label4",
       "purple" => "$label5"
     }.freeze
 
