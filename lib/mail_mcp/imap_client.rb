@@ -190,12 +190,15 @@ module MailMCP
 
     def extract_attachments(mail)
       mail.attachments.map do |att|
+        # Mail#decoded does not memoize — it base64-decodes into a new String on
+        # every call, so decode once and reuse for both the upload and the size.
+        content = att.decoded
         url = AttachmentStore.upload(
-          content: att.decoded,
+          content: content,
           filename: att.filename || "attachment",
           content_type: att.content_type
         )
-        { filename: att.filename, content_type: att.content_type, size: att.decoded.bytesize, url: url }
+        { filename: att.filename, content_type: att.content_type, size: content.bytesize, url: url }
       end
     end
   end
