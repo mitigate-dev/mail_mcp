@@ -144,7 +144,7 @@ module MailMCP
 
     def resolve_mcp_context
       auth = request.env["HTTP_AUTHORIZATION"]
-      return [nil, nil] unless auth&.start_with?("Bearer ")
+      return [nil, unauthorized_response("missing bearer token")] unless auth&.start_with?("Bearer ")
 
       creds = JwtService.verify(auth[7..])
       context = CredentialContext.new(
@@ -161,12 +161,16 @@ module MailMCP
       )
       [context, nil]
     rescue JwtService::Error => e
-      error = [
+      [nil, unauthorized_response(e.message)]
+    end
+
+    # 401 challenge that tells an MCP client where to run the OAuth flow.
+    def unauthorized_response(description)
+      [
         401,
         { "Content-Type" => "application/json", "WWW-Authenticate" => mcp_www_authenticate },
-        [JSON.generate({ error: "invalid_token", error_description: e.message })]
+        [JSON.generate({ error: "invalid_token", error_description: description })]
       ]
-      [nil, error]
     end
 
     def exchange_code(params, client_id)
