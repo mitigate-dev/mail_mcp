@@ -216,6 +216,16 @@ RSpec.describe MailMCP::App do
       body = JSON.parse(last_response.body)
       expect(body["error"]).to eq("invalid_token")
     end
+
+    it "returns a 401 challenge when the Authorization header is missing" do
+      post "/mcp", mcp_request("tools/list"), mcp_headers.except("HTTP_AUTHORIZATION")
+
+      expect(last_response.status).to eq(401)
+      expect(last_response.headers["WWW-Authenticate"]).to include("resource_metadata=")
+      body = JSON.parse(last_response.body)
+      expect(body["error"]).to eq("invalid_token")
+      expect(body["error_description"]).to eq("missing bearer token")
+    end
   end
 
   describe "GET /health" do
