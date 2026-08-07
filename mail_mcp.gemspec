@@ -25,7 +25,11 @@ Gem::Specification.new do |spec|
   spec.add_dependency "base64", "~> 0.2"
   spec.add_dependency "json-jwt", "~> 1.16"
   spec.add_dependency "mail", "~> 2.8"
-  spec.add_dependency "mcp", "~> 0.14"
+  # Pinned to a single minor: this gem is installed directly (`gem install mail_mcp`),
+  # so its Gemfile.lock is bypassed and any mcp release would otherwise be picked up at
+  # install time. 0.23 added the DNS-rebinding Host check plus the `allowed_hosts:`
+  # option needed to accept our public hostname; earlier versions reject that option.
+  spec.add_dependency "mcp", "~> 0.25.0"
   spec.add_dependency "puma", "~> 6.0"
   spec.add_dependency "rack", "~> 3.0"
   spec.add_dependency "securerandom"

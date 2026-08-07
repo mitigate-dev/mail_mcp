@@ -37,7 +37,11 @@ module MailMCP
         tools: MCP_TOOLS,
         server_context: server_context
       )
-      transport = MCP::Server::Transports::StreamableHTTPTransport.new(mcp_server, stateless: true)
+      transport = MCP::Server::Transports::StreamableHTTPTransport.new(
+        mcp_server,
+        stateless: true,
+        allowed_hosts: allowed_mcp_hosts
+      )
       status_code, resp_headers, body = transport.call(env)
       halt status_code, resp_headers, body
     end
@@ -218,6 +222,13 @@ module MailMCP
 
     def base_url
       ENV.fetch("BASE_URL")
+    end
+
+    # The MCP transport's DNS-rebinding protection only accepts loopback `Host` values
+    # out of the box. This server is reached at its public hostname, so allow-list it —
+    # a bare host name matches any port.
+    def allowed_mcp_hosts
+      [URI.parse(base_url).host]
     end
 
     def decode_client_id!(client_id)

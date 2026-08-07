@@ -181,11 +181,14 @@ RSpec.describe MailMCP::App do
       MailMCP::JwtService.issue(creds)
     end
 
+    let(:mcp_host) { URI.parse(ENV.fetch("BASE_URL")).host }
+
     let(:mcp_headers) do
       {
         "CONTENT_TYPE" => "application/json",
         "HTTP_ACCEPT" => "application/json, text/event-stream",
-        "HTTP_AUTHORIZATION" => "Bearer #{access_token}"
+        "HTTP_AUTHORIZATION" => "Bearer #{access_token}",
+        "HTTP_HOST" => mcp_host
       }
     end
 
@@ -206,6 +209,32 @@ RSpec.describe MailMCP::App do
                                      send_mail_message create_draft_mail_message delete_mail_message
                                      move_mail_message update_mail_message_flags
                                    ])
+    end
+
+    it "dispatches tools/call to the tool using credentials from the bearer token" do
+      imap_client = instance_spy(MailMCP::ImapClient)
+      allow(MailMCP::ImapClient).to receive(:connect).and_yield(imap_client)
+      allow(imap_client).to receive(:list_mailboxes).and_return(%w[INBOX Sent])
+
+      post "/mcp", mcp_request("tools/call", { name: "list_mailboxes", arguments: {} }), mcp_headers
+
+      expect(last_response.status).to eq(200)
+      result = JSON.parse(last_response.body).fetch("result")
+      expect(result["isError"]).to be(false)
+      expect(result.dig("content", 0, "text")).to include("INBOX", "Sent")
+    end
+
+    it "accepts the public host from BASE_URL, including with an explicit port" do
+      post "/mcp", mcp_request("tools/list"), mcp_headers.merge("HTTP_HOST" => "#{mcp_host}:8443")
+
+      expect(last_response.status).to eq(200)
+    end
+
+    it "rejects a Host header that is not the public host (DNS rebinding)" do
+      post "/mcp", mcp_request("tools/list"), mcp_headers.merge("HTTP_HOST" => "evil.example.com")
+
+      expect(last_response.status).to eq(403)
+      expect(last_response.body).to include("Invalid Host header")
     end
 
     it "returns 401 for an invalid Bearer token" do
