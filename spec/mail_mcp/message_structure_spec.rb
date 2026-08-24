@@ -68,6 +68,36 @@ RSpec.describe MailMCP::MessageStructure do
       expect(parts.select(&:attachment?).map(&:filename)).to eq(["invoice.pdf"])
     end
 
+    # net-imap hands back RFC 2231 continuations as separate numbered keys. A plain
+    # key lookup misses them, and the attachment then vanishes from the response
+    # entirely, since a filename is what marks a part as an attachment.
+    it "reassembles an RFC 2231 split filename" do
+      params = { "FILENAME*0*" => "utf-8%27%27r%C3%A4ch", "FILENAME*1*" => "nung%2Epdf" }
+      disposition = Net::IMAP::ContentDisposition.new("ATTACHMENT", params)
+      body = Net::IMAP::BodyTypeBasic.new("APPLICATION", "PDF", nil, nil, nil, "base64", 10,
+                                          nil, disposition, nil, nil, nil)
+
+      expect(described_class.flatten(body).first.filename).to eq("rächnung.pdf")
+    end
+
+    it "decodes an RFC 2047 encoded filename" do
+      disposition = Net::IMAP::ContentDisposition.new(
+        "ATTACHMENT", { "FILENAME" => "=?UTF-8?B?csOkY2hudW5nLnBkZg==?=" }
+      )
+      body = Net::IMAP::BodyTypeBasic.new("APPLICATION", "PDF", nil, nil, nil, "base64", 10,
+                                          nil, disposition, nil, nil, nil)
+
+      expect(described_class.flatten(body).first.filename).to eq("rächnung.pdf")
+    end
+
+    it "leaves an apostrophe in an ordinary filename alone" do
+      disposition = Net::IMAP::ContentDisposition.new("ATTACHMENT", { "FILENAME" => "'quoted'.pdf" })
+      body = Net::IMAP::BodyTypeBasic.new("APPLICATION", "PDF", nil, nil, nil, "base64", 10,
+                                          nil, disposition, nil, nil, nil)
+
+      expect(described_class.flatten(body).first.filename).to eq("'quoted'.pdf")
+    end
+
     it "reads a filename that the server reported in upper case" do
       mail = Mail.new do
         from "a@x.com"
@@ -94,9 +124,15 @@ RSpec.describe MailMCP::MessageStructure do
       expect(part).not_to be_streamable
     end
 
-    # Without a size from the server the chunk loop has no bound to walk.
-    it "does not stream a part of unreported size" do
+    # A part whose size the server did not report still streams: the chunk loop
+    # terminates on the first empty range rather than on a byte count.
+    it "streams a part of unreported size" do
       part = described_class::Part.new(section: "1", encoding: "base64", encoded_size: 0)
+      expect(part).to be_streamable
+    end
+
+    it "does not stream an encoding it has no incremental decoder for" do
+      part = described_class::Part.new(section: "1", encoding: "x-uuencode", encoded_size: 10)
       expect(part).not_to be_streamable
     end
   end

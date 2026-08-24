@@ -14,14 +14,14 @@ class FakeImapServer
 
   def examine(_folder) = nil
 
-  def select(_folder) = nil
-
   def uid_fetch(_uids, specs)
     @requested_specs.concat(specs)
     attrs = specs.each_with_object({}) { |spec, acc| serve(spec, acc) }
     return nil if attrs.empty?
 
-    [Struct.new(:attr).new(attrs)]
+    # A real FetchData, so specs exercise net-imap's own request-spec/response-key
+    # reconciliation rather than a stand-in for it.
+    [Net::IMAP::FetchData.new(1, attrs)]
   end
 
   # Sections fetched with a byte range, e.g. [["2", 0, 4194304]].
@@ -64,18 +64,7 @@ class FakeImapServer
     indices = section.split(".").map { |number| number.to_i - 1 }
     return indices == [0] ? @mail : nil unless @mail.multipart?
 
-    indices.reduce(@mail) do |node, index|
-      child = descend(node, index)
-      return nil if child.nil?
-
-      child
-    end
-  end
-
-  def descend(node, index)
-    return nil unless node.respond_to?(:multipart?) && node.multipart?
-
-    node.parts[index]
+    indices.reduce(@mail) { |node, index| node.parts[index] if node&.multipart? }
   end
 
   def structure_of(part)
@@ -104,8 +93,6 @@ class FakeImapServer
   # Upcased on purpose: real servers pick their own case for parameter names.
   def params_of(part)
     (part.content_type_parameters || {}).transform_keys { |key| key.to_s.upcase }
-  rescue StandardError
-    {}
   end
 
   def disposition_of(part)
@@ -116,7 +103,5 @@ class FakeImapServer
       dsp.disposition_type.to_s.upcase,
       (dsp.parameters || {}).transform_keys { |key| key.to_s.upcase }
     )
-  rescue StandardError
-    nil
   end
 end

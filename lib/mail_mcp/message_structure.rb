@@ -1,4 +1,4 @@
-require "net/imap"
+require "mail"
 
 module MailMCP
   # Flattens an IMAP BODYSTRUCTURE into its leaf parts, each tagged with the
@@ -6,14 +6,13 @@ module MailMCP
   # individually is what lets a large message be handled without ever holding the
   # whole thing in memory.
   module MessageStructure
-    IDENTITY_ENCODINGS = ["7bit", "8bit", "binary", ""].freeze
+    # Encodings we can fetch and write through in chunks. Quoted-printable cannot be:
+    # Mail's decoder normalizes line endings and repairs mis-encoded hard breaks across
+    # the whole string, and does not decompose across chunk boundaries.
+    STREAMABLE_ENCODINGS = ["base64", "7bit", "8bit", "binary", ""].freeze
 
-    Part = Struct.new(:section, :media_type, :subtype, :encoding, :encoded_size, :filename,
-                      :charset, :content_id, keyword_init: true) do
-      def mime_type
-        "#{media_type}/#{subtype}"
-      end
-
+    Part = Struct.new(:section, :mime_type, :encoding, :encoded_size, :filename, :charset,
+                      keyword_init: true) do
       # Mirrors Mail::Message#attachment?, which keys off a filename being present
       # rather than off the Content-Disposition type.
       def attachment?
@@ -24,23 +23,18 @@ module MailMCP
         encoding == "base64"
       end
 
-      # Encodings we can fetch and write through in chunks. Anything else (in
-      # practice quoted-printable) has to be decoded in one pass.
       def streamable?
-        encoded_size.positive? && (base64? || IDENTITY_ENCODINGS.include?(encoding))
+        STREAMABLE_ENCODINGS.include?(encoding)
       end
     end
 
     class << self
       def flatten(body, prefix = nil)
         return [] if body.nil?
+        return [leaf(body, prefix || "1")] unless body.multipart?
 
-        if body.multipart?
-          body.parts.each_with_index.flat_map do |child, index|
-            flatten(child, [prefix, index + 1].compact.join("."))
-          end
-        else
-          [leaf(body, prefix || "1")]
+        body.parts.flat_map.with_index(1) do |child, number|
+          flatten(child, [prefix, number].compact.join("."))
         end
       end
 
@@ -49,26 +43,30 @@ module MailMCP
       def leaf(body, section)
         Part.new(
           section: section,
-          media_type: body.media_type.to_s.downcase,
-          subtype: body.subtype.to_s.downcase,
+          mime_type: "#{body.media_type}/#{body.subtype}".downcase,
           encoding: body.encoding.to_s.downcase,
           encoded_size: body.size.to_i,
-          filename: filename_for(body),
-          charset: param(body.param, "charset"),
-          content_id: body.content_id
+          filename: param(body.disposition&.param, "filename") || param(body.param, "name"),
+          charset: param(body.param, "charset")
         )
       end
 
-      def filename_for(body)
-        param(body.disposition&.param, "filename") || param(body.param, "name")
+      # A parameter can arrive RFC 2231-split across numbered keys (FILENAME*0*,
+      # FILENAME*1*) or RFC 2047 encoded. Mail decodes both; a plain key lookup returns
+      # nil for the split form, which silently drops the attachment from the response.
+      def param(params, name)
+        return nil if params.nil? || params.empty?
+
+        value = Mail::ParameterHash[params][name]
+        return nil if value.nil?
+
+        # An RFC 2231 extended value is prefixed with charset'language'.
+        value = value.sub(/\A[\w-]*'[\w-]*'/, "") if extended?(params, name)
+        Mail::Encodings.value_decode(value)
       end
 
-      # Servers pick their own case for parameter names, so never index directly.
-      def param(params, name)
-        return nil unless params
-
-        pair = params.find { |key, _value| key.to_s.casecmp?(name) }
-        pair&.last
+      def extended?(params, name)
+        params.any? { |key, _value| key.to_s.downcase.start_with?("#{name}*") }
       end
     end
   end

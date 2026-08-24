@@ -110,6 +110,18 @@ RSpec.describe MailMCP::ImapClient do
       expect(body_specs).to all(start_with("BODY.PEEK["))
     end
 
+    # A missing section mid-stream used to produce a zero-byte attachment with a
+    # valid-looking presigned URL. Failing loudly beats uploading a truncated file.
+    it "raises rather than uploading a truncated attachment when a section is missing" do
+      allow(server).to receive(:uid_fetch).and_wrap_original do |original, uids, specs|
+        specs.any? { |spec| spec.start_with?("BODY.PEEK[2]") } ? [] : original.call(uids, specs)
+      end
+
+      expect { described_class.new(server).get_message(folder: "INBOX", uid: 42) }
+        .to raise_error(MailMCP::MessageReader::IncompletePart, /BODY\[2\]/)
+      expect(uploaded).to be_empty
+    end
+
     it "returns nil when the uid is not found" do
       allow(server).to receive(:uid_fetch).and_return([])
       expect(described_class.new(server).get_message(folder: "INBOX", uid: 99)).to be_nil

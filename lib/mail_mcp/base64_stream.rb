@@ -10,19 +10,20 @@ module MailMCP
       @carry = +""
     end
 
+    # Consumes +chunk+: it is stripped and sliced in place so that decoding a 4MiB
+    # chunk does not allocate three more copies of it. Callers must read anything they
+    # need from the chunk (its size, in particular) before calling this.
     def push(chunk)
-      buffer = @carry + chunk.delete("\r\n\t ")
-      complete = buffer.bytesize - (buffer.bytesize % GROUP)
-      @carry = buffer.byteslice(complete, buffer.bytesize - complete) || +""
-      return "".b if complete.zero?
-
-      buffer.byteslice(0, complete).unpack1("m")
+      chunk = chunk.dup if chunk.frozen?
+      chunk.delete!("\r\n\t ")
+      chunk.prepend(@carry) unless @carry.empty?
+      leftover = chunk.bytesize % GROUP
+      @carry = leftover.zero? ? +"" : chunk.slice!(chunk.bytesize - leftover, leftover)
+      chunk.empty? ? "".b : chunk.unpack1("m")
     end
 
     # Decodes whatever is left over, including any padding.
     def finish
-      return "".b if @carry.empty?
-
       remainder = @carry
       @carry = +""
       remainder.unpack1("m")

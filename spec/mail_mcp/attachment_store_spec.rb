@@ -15,10 +15,10 @@ RSpec.describe MailMCP::AttachmentStore do
     described_class.reset!
   end
 
-  describe ".upload" do
+  describe ".upload_io" do
     it "uploads to S3 and returns a presigned URL" do
-      url = described_class.upload(
-        content: "PDF content",
+      url = described_class.upload_io(
+        io: StringIO.new("PDF content"),
         filename: "report.pdf",
         content_type: "application/pdf"
       )
@@ -28,8 +28,23 @@ RSpec.describe MailMCP::AttachmentStore do
       expect(url).to eq(presigned_url)
     end
 
+    # Passing the IO through rather than its contents is what keeps a large attachment
+    # off the heap, so assert the body is the handle itself.
+    it "streams the IO to S3 as the request body" do
+      io = StringIO.new("streamed bytes")
+      described_class.upload_io(io: io, filename: "big.bin", content_type: "application/octet-stream")
+      expect(s3_client).to have_received(:put_object).with(hash_including(body: io))
+    end
+
+    it "rewinds the IO so a partially read tempfile still uploads in full" do
+      io = StringIO.new("streamed bytes")
+      io.read(4)
+      described_class.upload_io(io: io, filename: "big.bin", content_type: "application/octet-stream")
+      expect(io.pos).to eq(0)
+    end
+
     it "reuses one memoized client and presigner across uploads" do
-      2.times { described_class.upload(content: "d", filename: "f.txt", content_type: "text/plain") }
+      2.times { described_class.upload_io(io: StringIO.new("d"), filename: "f.txt", content_type: "text/plain") }
       expect(Aws::S3::Client).to have_received(:new).once
       expect(Aws::S3::Presigner).to have_received(:new).once
     end
@@ -38,27 +53,10 @@ RSpec.describe MailMCP::AttachmentStore do
       keys = 2.times.map do
         key = nil
         allow(s3_client).to receive(:put_object) { |args| key = args[:key] }
-        described_class.upload(content: "data", filename: "file.txt", content_type: "text/plain")
+        described_class.upload_io(io: StringIO.new("data"), filename: "file.txt", content_type: "text/plain")
         key
       end
       expect(keys.first).not_to eq(keys.last)
-    end
-  end
-
-  describe ".upload_io" do
-    it "streams the IO to S3 as the request body" do
-      io = StringIO.new("streamed bytes")
-      url = described_class.upload_io(io: io, filename: "big.bin", content_type: "application/octet-stream")
-
-      expect(s3_client).to have_received(:put_object).with(hash_including(body: io))
-      expect(url).to eq(presigned_url)
-    end
-
-    it "rewinds the IO so a partially read tempfile still uploads in full" do
-      io = StringIO.new("streamed bytes")
-      io.read(4)
-      described_class.upload_io(io: io, filename: "big.bin", content_type: "application/octet-stream")
-      expect(io.pos).to eq(0)
     end
   end
 end
