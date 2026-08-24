@@ -10,6 +10,20 @@ RSpec.describe MailMCP::MessageStructure do
     described_class.flatten(structure_for(raw))
   end
 
+  def html_part(body)
+    part = Mail::Part.new
+    part.content_type = "text/html"
+    part.body = body
+    part
+  end
+
+  def png_part(body)
+    part = Mail::Part.new
+    part.content_type = "image/png"
+    part.body = body
+    part
+  end
+
   it "returns nothing for a nil structure" do
     expect(described_class.flatten(nil)).to eq([])
   end
@@ -52,6 +66,29 @@ RSpec.describe MailMCP::MessageStructure do
     outer.add_file(filename: "a.pdf", content: "PDF")
 
     expect(parts_for(outer.to_s).map(&:section)).to eq(%w[1.1 1.2 2])
+  end
+
+  # Mail::AttachmentsList only ever treats leaf parts as attachments: a node with
+  # children recurses and is never included itself, whatever its disposition says
+  # (message/rfc822 is its one special case, and that arrives here as a leaf because
+  # BodyTypeMessage#multipart? is false). Descending unconditionally reproduces that.
+  it "descends into a multipart that carries its own attachment disposition" do
+    inner = Mail::Part.new
+    inner.content_type = "multipart/related; boundary=INNER"
+    inner.content_disposition = 'attachment; filename="page.mht"'
+    inner.add_part(html_part("<p>archived</p>"))
+    inner.add_part(png_part("PNGDATA"))
+
+    outer = Mail.new
+    outer.from = "a@x.com"
+    outer.to = "b@x.com"
+    outer.text_part = Mail::Part.new { body "real body" }
+    outer.add_part(inner)
+
+    parts = parts_for(outer.to_s)
+    expect(parts.map(&:mime_type)).to eq(["text/plain", "text/html", "image/png"])
+    expect(parts.map(&:section)).to eq(%w[1 2.1 2.2])
+    expect(parts).to all(satisfy { |part| part.filename.nil? })
   end
 
   describe "attachment detection" do
