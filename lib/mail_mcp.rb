@@ -16,6 +16,9 @@ end
 
 require_relative "mail_mcp/jwt_service"
 require_relative "mail_mcp/pkce"
+require_relative "mail_mcp/base64_stream"
+require_relative "mail_mcp/message_structure"
+require_relative "mail_mcp/message_reader"
 require_relative "mail_mcp/imap_client"
 require_relative "mail_mcp/smtp_client"
 require_relative "mail_mcp/attachment_store"

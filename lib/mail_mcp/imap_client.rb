@@ -75,16 +75,14 @@ module MailMCP
       { messages: messages, total: total, page: page, per_page: per_page }
     end
 
+    # Delegates to MessageReader, which fetches the message a part at a time so peak
+    # memory tracks the largest part rather than the whole message.
     def get_message(folder:, uid:)
       MailMCP.logger.info { "IMAP get_message folder=#{folder.inspect} uid=#{uid}" }
       @imap.examine(folder)
-      data = @imap.uid_fetch([uid.to_i], %w[RFC822 FLAGS]).first
-      unless data
-        MailMCP.logger.warn { "IMAP get_message not found folder=#{folder.inspect} uid=#{uid}" }
-        return nil
-      end
-
-      format_message(uid: uid, parsed: Mail.new(data.attr["RFC822"]), flags: data.attr["FLAGS"])
+      message = MessageReader.new(@imap, uid.to_i).read
+      MailMCP.logger.warn { "IMAP get_message not found folder=#{folder.inspect} uid=#{uid}" } unless message
+      message
     end
 
     def search_messages(folder:, query:)
@@ -142,27 +140,6 @@ module MailMCP
 
     private
 
-    def format_message(uid:, parsed:, flags:)
-      {
-        uid: uid,
-        message_id: parsed.message_id,
-        in_reply_to: parsed.in_reply_to,
-        references: parsed.references,
-        subject: parsed.subject,
-        from: parsed.from,
-        sender: parsed.sender,
-        reply_to: parsed.reply_to,
-        to: parsed.to,
-        cc: parsed.cc,
-        bcc: parsed.bcc,
-        date: parsed.date&.iso8601,
-        text_body: parsed.text_part&.decoded,
-        html_body: parsed.html_part&.decoded,
-        flags: flags,
-        attachments: extract_attachments(parsed)
-      }
-    end
-
     def format_envelope(msg)
       env = msg.attr["ENVELOPE"]
       {
@@ -186,20 +163,6 @@ module MailMCP
       return [] unless addrs
 
       addrs.map { |a| "#{a.name} <#{a.mailbox}@#{a.host}>" }
-    end
-
-    def extract_attachments(mail)
-      mail.attachments.map do |att|
-        # Mail#decoded does not memoize — it base64-decodes into a new String on
-        # every call, so decode once and reuse for both the upload and the size.
-        content = att.decoded
-        url = AttachmentStore.upload(
-          content: content,
-          filename: att.filename || "attachment",
-          content_type: att.content_type
-        )
-        { filename: att.filename, content_type: att.content_type, size: content.bytesize, url: url }
-      end
     end
   end
 end
