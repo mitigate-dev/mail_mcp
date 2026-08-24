@@ -13,6 +13,8 @@ require_relative "../lib/mail_mcp"
 
 MailMCP.logger = Logger.new(IO::NULL)
 
+require_relative "support/fake_imap_server"
+
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
     expectations.include_chain_clauses_in_custom_matcher_descriptions = true

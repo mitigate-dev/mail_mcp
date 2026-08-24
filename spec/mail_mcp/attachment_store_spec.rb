@@ -11,6 +11,8 @@ RSpec.describe MailMCP::AttachmentStore do
     allow(s3_client).to receive(:put_object)
     allow(presigner).to receive(:presigned_url).and_return(presigned_url)
     stub_const("ENV", ENV.to_h.merge("AWS_S3_BUCKET" => "test-bucket"))
+    # The client and presigner are memoized to avoid rebuilding them per attachment.
+    described_class.reset!
   end
 
   describe ".upload" do
@@ -26,6 +28,12 @@ RSpec.describe MailMCP::AttachmentStore do
       expect(url).to eq(presigned_url)
     end
 
+    it "reuses one memoized client and presigner across uploads" do
+      2.times { described_class.upload(content: "d", filename: "f.txt", content_type: "text/plain") }
+      expect(Aws::S3::Client).to have_received(:new).once
+      expect(Aws::S3::Presigner).to have_received(:new).once
+    end
+
     it "generates a unique S3 key for each upload" do
       keys = 2.times.map do
         key = nil
@@ -34,6 +42,23 @@ RSpec.describe MailMCP::AttachmentStore do
         key
       end
       expect(keys.first).not_to eq(keys.last)
+    end
+  end
+
+  describe ".upload_io" do
+    it "streams the IO to S3 as the request body" do
+      io = StringIO.new("streamed bytes")
+      url = described_class.upload_io(io: io, filename: "big.bin", content_type: "application/octet-stream")
+
+      expect(s3_client).to have_received(:put_object).with(hash_including(body: io))
+      expect(url).to eq(presigned_url)
+    end
+
+    it "rewinds the IO so a partially read tempfile still uploads in full" do
+      io = StringIO.new("streamed bytes")
+      io.read(4)
+      described_class.upload_io(io: io, filename: "big.bin", content_type: "application/octet-stream")
+      expect(io.pos).to eq(0)
     end
   end
 end
