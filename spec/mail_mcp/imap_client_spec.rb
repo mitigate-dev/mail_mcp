@@ -108,15 +108,15 @@ RSpec.describe MailMCP::ImapClient do
   end
 
   describe "#search_messages" do
-    it "passes raw query string to IMAP SEARCH" do
-      allow(imap).to receive(:search).with(["UNSEEN"]).and_return([1, 2, 3])
+    it "passes raw query string to IMAP UID SEARCH" do
+      allow(imap).to receive(:uid_search).with(["UNSEEN"]).and_return([1, 2, 3])
       client = described_class.new(imap)
       result = client.search_messages(folder: "INBOX", query: "UNSEEN")
       expect(result).to eq([1, 2, 3])
     end
 
     it "supports multi-word criteria" do
-      allow(imap).to receive(:search).with(["FROM", "alice@example.com"]).and_return([5])
+      allow(imap).to receive(:uid_search).with(["FROM", "alice@example.com"]).and_return([5])
       client = described_class.new(imap)
       result = client.search_messages(folder: "INBOX", query: "FROM alice@example.com")
       expect(result).to eq([5])
