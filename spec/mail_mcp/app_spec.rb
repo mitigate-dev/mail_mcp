@@ -35,6 +35,7 @@ RSpec.describe MailMCP::App do
       expect(body["issuer"]).to eq(ENV.fetch("BASE_URL", nil))
       expect(body["code_challenge_methods_supported"]).to include("S256")
       expect(body).not_to have_key("registration_endpoint")
+      expect(body["token_endpoint_auth_methods_supported"]).to eq(%w[client_secret_basic client_secret_post])
     end
   end
 
@@ -95,6 +96,32 @@ RSpec.describe MailMCP::App do
       expect(body["access_token"]).not_to be_nil
       expect(body["refresh_token"]).not_to be_nil
       expect(body["token_type"]).to eq("Bearer")
+    end
+
+    it "accepts client credentials sent with HTTP Basic authentication" do
+      basic_authorize URI.encode_www_form_component(client_id), URI.encode_www_form_component(client_secret)
+      post "/oauth/token", {
+        grant_type: "authorization_code",
+        code: issue_code,
+        code_verifier: verifier,
+        redirect_uri: redirect_uri,
+        client_id: client_id
+      }
+      expect(last_response.status).to eq(200)
+      expect(JSON.parse(last_response.body)["access_token"]).not_to be_nil
+    end
+
+    it "returns invalid_client for a wrong client_secret sent with HTTP Basic authentication" do
+      basic_authorize URI.encode_www_form_component(client_id), "wrong-secret"
+      post "/oauth/token", {
+        grant_type: "authorization_code",
+        code: issue_code,
+        code_verifier: verifier,
+        redirect_uri: redirect_uri,
+        client_id: client_id
+      }
+      expect(last_response.status).to eq(401)
+      expect(JSON.parse(last_response.body)["error"]).to eq("invalid_client")
     end
 
     it "issues a new access_token via refresh_token grant" do

@@ -64,6 +64,7 @@ module MailMCP
                       token_endpoint: "#{base_url}/oauth/token",
                       response_types_supported: ["code"],
                       grant_types_supported: ["authorization_code"],
+                      token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
                       code_challenge_methods_supported: ["S256"]
                     })
     end
@@ -106,9 +107,8 @@ module MailMCP
     post "/oauth/token" do
       content_type :json
 
-      grant_type    = params[:grant_type]
-      client_id     = params[:client_id]
-      client_secret = params[:client_secret]
+      grant_type = params[:grant_type]
+      client_id, client_secret = client_credentials
 
       client_config = begin
         JwtService.decode_client_id(client_id.to_s)
@@ -145,6 +145,16 @@ module MailMCP
     end
 
     private
+
+    # RFC 6749 section 2.3.1: clients may authenticate with HTTP Basic, whose
+    # user and password are the form-encoded client_id and client_secret, or
+    # with both in the request body.
+    def client_credentials
+      auth = Rack::Auth::Basic::Request.new(request.env)
+      return [params[:client_id], params[:client_secret]] unless auth.provided? && auth.basic?
+
+      auth.credentials.map { |part| URI.decode_www_form_component(part) }
+    end
 
     def resolve_mcp_context
       auth = request.env["HTTP_AUTHORIZATION"]
