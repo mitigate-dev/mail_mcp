@@ -90,7 +90,10 @@ module MailMCP
     def search_messages(folder:, query:)
       MailMCP.logger.info { "IMAP search_messages folder=#{folder.inspect} query=#{query.inspect}" }
       @imap.examine(folder)
-      results = @imap.search(query.split)
+      # UID SEARCH, not SEARCH: the ids returned here are fed back into
+      # get_message/delete_message/move_message/update_flags, which all issue
+      # UID commands. Sequence numbers would only match until the first expunge.
+      results = @imap.uid_search(query.split)
       MailMCP.logger.debug { "IMAP search_messages matched=#{results.size}" }
       results
     end

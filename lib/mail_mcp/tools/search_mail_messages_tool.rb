@@ -1,7 +1,8 @@
 module MailMCP
   class SearchMailMessagesTool < Tool
     tool_name "search_mail_messages"
-    description "Search messages in an IMAP folder using raw IMAP SEARCH criteria"
+    description "Search messages in an IMAP folder using raw IMAP SEARCH criteria. " \
+                "Returns message UIDs usable with get_mail_message"
     annotations(
       title: "Search Mail Messages",
       read_only_hint: true,
